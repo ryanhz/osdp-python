@@ -2,7 +2,12 @@ import logging
 from queue import Queue
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
-from threading import Thread, Event
+from threading import Thread
+
+from ._types import *
+from ._connection import OsdpConnection
+from ._command import Command
+from ._reply import Reply
 
 log = logging.getLogger('osdp')
 
@@ -43,7 +48,7 @@ class ControlPanel:
 
 	def output_control(self, connection_id: UUID, address: int, output_controls: OutputControls) -> bool:
 		reply = self.send_command(connection_id, OutputControlCommand(address, output_controls))
-		return reply.type == ReplyType.Ack || reply.type == ReplyType.OutputStatusReport
+		return reply.type == ReplyType.Ack or reply.type == ReplyType.OutputStatusReport
 
 	def reader_led_control(self, connection_id: UUID, address: int, reader_led_controls: ReaderLedControls) -> bool:
 		reply = self.send_command(connection_id, ReaderLedControlCommand(address, reader_led_controls))
@@ -135,23 +140,3 @@ class ControlPanel:
 		log.debug("%s < Raw reader data received %s", address, raw_card_data)
 
 
-class DataEvent(Event):
-
-	def __init__(self):
-		super().__init__()
-		self.data = None
-
-	def set_data(self, data):
-		self.data = data
-		super().set()
-
-	def clear_data(self):
-		self.data = None
-		super().clear()
-
-	def wait_data(self, timeout=None):
-		self.wait(timeout)
-		if self.is_set():
-			return self.data
-		else:
-			return None

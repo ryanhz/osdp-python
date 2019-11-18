@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod 
+from abc import ABC, abstractmethod
+from ._device import Device
 
 class Message(ABC):
 	
@@ -36,7 +37,7 @@ class Message(ABC):
 
 	@address.setter
 	def address(self, value: int):
-		return self._address = value
+		self._address = value
 
 	@abstractmethod
 	def data() -> bytes:
@@ -84,3 +85,4 @@ class Message(ABC):
 
 	def convert_bytes_to_int(self, data) -> int:
 		return int.from_bytes(data, byteorder='little')
+

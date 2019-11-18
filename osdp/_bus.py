@@ -5,6 +5,11 @@ from queue import Queue
 from threading import Lock
 from uuid import UUID, uuid4
 
+from ._connection import OsdpConnection
+from ._device import Device
+from ._command import Command
+from ._reply import Reply
+
 log = logging.getLogger('osdp')
 
 '''
@@ -112,7 +117,7 @@ class Bus:
 
 		extract_reply_data = reply.extract_reply_data
 		error_code = ErrorCode(extract_reply_data[0])
-		if reply.type == ReplyType.Nak and (error_code==ErrorCode.DoesNotSupportSecurityBlock || error_code==ErrorCode.DoesNotSupportSecurityBlock):
+		if reply.type == ReplyType.Nak and (error_code==ErrorCode.DoesNotSupportSecurityBlock or error_code==ErrorCode.DoesNotSupportSecurityBlock):
 			device.reset_security()
 
 		if reply.type==ReplyType.CrypticData:

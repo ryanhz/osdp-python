@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from uuid import UUID, uuid4
-from message import Message
-from command import Command
-from replay_type import ReplyType
-from security_block_type import SecurityBlockType
+from uuid import UUID
+
+from ._types import *
+from ._message import Message
+from ._command import Command
+from ._device import Device
 
 class Reply(Message):
 
@@ -18,7 +19,7 @@ class Reply(Message):
 		SecurityBlockType.ReplyMessageWithDataSecurity
 	]
 
-	def __init__(self, data: bytes, connection_id: UUID, issuing_command: Command, device Device):
+	def __init__(self, data: bytes, connection_id: UUID, issuing_command: Command, device: Device):
 		self._address = data[1] & self.ADDRESS_MASK
 		self._sequence = data[4] & 0x03
 
@@ -83,11 +84,11 @@ class Reply(Message):
 
 	@property
 	def extract_reply_data(self) -> bytes:
-		return return self._extract_reply_data
+		return self._extract_reply_data
 
 	@property
 	def message_for_mac_generation(self) -> bytes:
-		return return self._message_for_mac_generation
+		return self._message_for_mac_generation
 
 	@property
 	def is_secure_message(self) -> bool:
@@ -103,7 +104,7 @@ class Reply(Message):
 		return self.is_correct_address and self.is_data_correct
 
 	@staticmethod
-	def parse(data: bytes, connection_id: UUID, issuing_command: Command, device Device) -> Reply:
+	def parse(data: bytes, connection_id: UUID, issuing_command: Command, device: Device):
 		reply = UnknownReply(data, connection_id, issuing_command, Device)
 		return reply
 
@@ -148,7 +149,38 @@ class Reply(Message):
 		pass
 
 	def __repr__(self):
-        return "Connection ID: {0} Address: {1} Type: {2}".format(self._connection_id, self.address, self.type)
+		return "Connection ID: {0} Address: {1} Type: {2}".format(self._connection_id, self.address, self.type)
 
 	def decrypt_data(self, device: Device) -> bytes:
 		return device.decrypt_data(self.extract_reply_data)
+
+
+class AckReply(Reply):
+
+	def reply_code(self) -> int:
+		return 0x40
+
+	def security_control_block(self) -> bytes:
+		return bytes([ 0x02, 0x16 ])
+
+	def data() -> bytes:
+		return bytes([ ])
+
+
+class UnknownReply(Reply):
+
+	def __init__(self, data: bytes, connection_id: UUID, issuing_command: Command, device: Device):
+		super().__init__(data, connection_id, issuing_command, device)
+
+	def reply_code(self) -> int:
+		return self.type.value
+
+	def security_control_block(self) -> bytes:
+		security_block_length = len(self.secure_block_data) + 2
+		secbk = bytearray([self.security_block_type, security_block_length])
+		secbk.extend(self.secure_block_data)
+		return bytes(secbk)
+
+	def data() -> bytes:
+		return self.extract_reply_data
+
