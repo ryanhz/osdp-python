@@ -117,6 +117,9 @@ class ControlPanel:
 		elif reply.type==ReplyType.RawReaderData:
 			self.on_raw_card_data_reply_received(reply.address, RawCardData.parse_data(reply))
 
+		elif reply.type==ReplyType.KeypadData:
+			self.on_keypad_data_reply_received(reply.address, KeypadData.parse_data(reply))
+
 
 	def on_nak_reply_received(self, address: int, nak: Nak):
 		log.debug("%s < Nak received %s", address, nak)
@@ -139,4 +142,5 @@ class ControlPanel:
 	def on_raw_card_data_reply_received(self, address: int, raw_card_data: RawCardData):
 		log.debug("%s < Raw reader data received %s", address, raw_card_data)
 
-
+	def on_keypad_data_reply_received(self, address: int, keypad_data: KeypadData):
+		log.debug("%s < Keypad data received %s", address, keypad_data)

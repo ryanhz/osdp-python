@@ -13,10 +13,10 @@ class Reply(Message):
 	REPLY_TYPE_INDEX = 5
 	MAC_SIZE = 4
 	SecureSessionMessages = [
-		SecurityBlockType.CommandMessageWithNoDataSecurity,
-		SecurityBlockType.ReplyMessageWithNoDataSecurity,
-		SecurityBlockType.CommandMessageWithDataSecurity,
-		SecurityBlockType.ReplyMessageWithDataSecurity
+		SecurityBlockType.CommandMessageWithNoDataSecurity.value,
+		SecurityBlockType.ReplyMessageWithNoDataSecurity.value,
+		SecurityBlockType.CommandMessageWithDataSecurity.value,
+		SecurityBlockType.ReplyMessageWithDataSecurity.value
 	]
 
 	def __init__(self, data: bytes, connection_id: UUID, issuing_command: Command, device: Device):
@@ -29,7 +29,7 @@ class Reply(Message):
 		is_secure_control_block_present: bool = (data[4] & 0x08)!=0
 		secure_block_size: int = (data[5] & 0xFF) if is_secure_control_block_present else 0
 		self._security_block_type = (data[6] & 0xFF) if is_secure_control_block_present else 0
-		self._secure_block_data = data[(self.REPLY_MESSAGE_HEADER_SIZE + 2):][:(secure_block_size-2)]
+		self._secure_block_data = data[(self.REPLY_MESSAGE_HEADER_SIZE + 2):][:(secure_block_size-2)] if is_secure_control_block_present else b''
 
 		mac_size: int = self.MAC_SIZE if self.is_secure_message else 0
 		message_length: int = len(data) - (reply_message_footer_size + mac_size)
@@ -37,11 +37,11 @@ class Reply(Message):
 		self._mac = data[message_length:][:mac_size]
 		self._type = ReplyType(data[self.REPLY_TYPE_INDEX + secure_block_size] & 0xFF)
 
-		data_start: int = self.REPLY_MESSAGE_HEADER_SIZE + secure_block_size
+		data_start: int = self.REPLY_MESSAGE_HEADER_SIZE + secure_block_size + 1
 		data_end: int = - reply_message_footer_size - mac_size
 		self._extract_reply_data = data[data_start:data_end]
 
-		if SecurityBlockType(self.security_block_type)==SecurityBlockType.ReplyMessageWithDataSecurity:
+		if self.security_block_type==SecurityBlockType.ReplyMessageWithDataSecurity.value:
 			self._extract_reply_data = self.decrypt_data(device);
 
 		if is_using_crc:
@@ -92,10 +92,9 @@ class Reply(Message):
 
 	@property
 	def is_secure_message(self) -> bool:
-		return SecurityBlockType(self.security_block_type) in self.SecureSessionMessages
+		return self.security_block_type in self.SecureSessionMessages
 
 	@property
-	@abstractmethod
 	def reply_code(self) -> int:
 		pass
 
@@ -157,6 +156,7 @@ class Reply(Message):
 
 class AckReply(Reply):
 
+	@property
 	def reply_code(self) -> int:
 		return 0x40
 
@@ -172,6 +172,7 @@ class UnknownReply(Reply):
 	def __init__(self, data: bytes, connection_id: UUID, issuing_command: Command, device: Device):
 		super().__init__(data, connection_id, issuing_command, device)
 
+	@property
 	def reply_code(self) -> int:
 		return self.type.value
 

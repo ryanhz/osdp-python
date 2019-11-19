@@ -420,7 +420,29 @@ class RawCardData:
 		return RawCardData(reader_number, format_code, bit_count, data)
 
 	def __repr__(self):
-		return "Reader Number: {0}\n  Format Code: {1}\n    Bit Count: {2}\n         Data: {3}".format(self.reader_number, self.format_code.name, self.bit_count, self.data.hex())
+		return "Reader Number: {0}\n  Format Code: {1}\n    Bit Count: {2}\n         Data: {3}".format(self.reader_number, self.format_code.name, self.bit_count, self.data.hex().upper())
+
+class KeypadData:
+
+	def __init__(self, reader_number: int, bit_count: int, data: bytes):
+		self.reader_number = reader_number
+		self.bit_count = bit_count
+		self.data = data
+
+	@staticmethod
+	def parse_data(reply) -> Nak:
+		data = reply.extract_reply_data
+		if len(data)<2:
+			raise ValueError("Invalid size for the data")
+
+		reader_number = data[0]
+		bit_count = int.from_bytes(data[1:2], byteorder='little')
+		data = data[2:]
+		return KeypadData(reader_number, bit_count, data)
+
+	def __repr__(self):
+		return "Reader Number: {0}\n    Bit Count: {1}\n         Data: {2}".format(self.reader_number, self.bit_count, self.data.hex().upper())
+
 
 class DataEvent(Event):
 

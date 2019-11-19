@@ -137,7 +137,7 @@ class Bus:
 			raise
 		data.extend(command_data)
 
-		log.debug("Raw write data: %s", command_data.hex())
+		log.debug("Raw command data: %s", command_data.hex())
 
 		self._connection.write(bytes(data))
 
@@ -154,7 +154,7 @@ class Bus:
 
 		log.debug("Raw reply data: %s", reply_buffer.hex())
 
-		return Reply.parse(reply_buffer, self.id, command, device)
+		return Reply.parse(bytes(reply_buffer), self.id, command, device)
 
 	def extract_message_length(self, reply_buffer: bytearray) -> int:
 		return int.from_bytes(bytes(reply_buffer[2:3]), byteorder='little')
