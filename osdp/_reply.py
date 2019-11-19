@@ -45,9 +45,9 @@ class Reply(Message):
 			self._extract_reply_data = self.decrypt_data(device);
 
 		if is_using_crc:
-			self._is_data_correct = self.calculate_crc(data[:-2])==self.convert_bytes_to_short(data[-2:])
+			self._is_data_correct = self.calculate_crc(data[:-2])==int.from_bytes(data[-2:], byteorder='little')
 		else:
-			self._is_data_correct = self.calculate_checksum(data[:-1])==self.convert_bytes_to_short(data[-1:])
+			self._is_data_correct = self.calculate_checksum(data[:-1])==int.from_bytes(data[-1:], byteorder='little')
 
 		self._message_for_mac_generation = data[:message_length]
 
@@ -163,7 +163,7 @@ class AckReply(Reply):
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x16 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return bytes([ ])
 
 
@@ -181,6 +181,6 @@ class UnknownReply(Reply):
 		secbk.extend(self.secure_block_data)
 		return bytes(secbk)
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return self.extract_reply_data
 

@@ -157,7 +157,7 @@ class Bus:
 		return Reply.parse(reply_buffer, self.id, command, device)
 
 	def extract_message_length(self, reply_buffer: bytearray) -> int:
-		return Message.convert_bytes_to_short(bytes(reply_buffer[2:3]))
+		return int.from_bytes(bytes(reply_buffer[2:3]), byteorder='little')
 
 	def wait_for_rest_of_message(self, buffer: bytearray, reply_length: int):
 		while len(buffer) < reply_length:

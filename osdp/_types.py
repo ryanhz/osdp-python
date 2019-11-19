@@ -43,7 +43,7 @@ class Control:
 		return (self.sequence & 0x03 | (0x04 if self.use_crc else 0) | (0x08 if self.has_security_control_block else 0)) & 0xFF
 
 	def increment_sequence(self, _sequence: int):
-		_sequence = (_sequence+1)%3 + 1
+		_sequence = _sequence%3 + 1
 		self.sequence = _sequence
 
 class ErrorCode(Enum):
@@ -98,7 +98,7 @@ class DeviceIdentification:
 		vendor_code = data[0:3]
 		model_number = data[3]
 		version = data[4]
-		serial_number = Message.convert_bytes_to_int(data[5:9])
+		serial_number = int.from_bytes(data[5:9], byteorder='little')
 		firmware_major = data[9]
 		firmware_minor = data[10]
 		firmware_build = data[11]
@@ -106,7 +106,7 @@ class DeviceIdentification:
 
 	def __repr__(self):
 		return "     Vendor Code: {0}\n    Model Number: {1}\n         Version: {2}\n   Serial Number: {3}\nFirmware Version: {4}.{5}.{6}".format(
-			self.vendor_code.hex(), self.model_number, self.version, Message.convert_int_to_bytes(self.serial_number).hex(), self.firmware_major, self.firmware_minor, self.firmware_build)
+			self.vendor_code.hex(), self.model_number, self.version, self.serial_number.to_bytes(2, byteorder='little').hex(), self.firmware_major, self.firmware_minor, self.firmware_build)
 
 class CapabilityFunction(Enum):
 	Unknown = 0
@@ -141,7 +141,7 @@ class DeviceCapability:
 
 	def __repr__(self):
 		if(self.function==CapabilityFunction.ReceiveBufferSize or self.function==CapabilityFunction.LargestCombinedMessageSize):
-			return "  Function: {0}\n      Size: {1}".format(self.function.name, Message.convert_bytes_to_short(bytes([self.compliance, self.number_of])))
+			return "  Function: {0}\n      Size: {1}".format(self.function.name,  int.from_bytes(bytes([self.compliance, self.number_of]), byteorder='little'))
 		else:
 			return "  Function: {0}\nCompliance: {1}\n Number Of: {2}".format(self.function.name, self.compliance, self.number_of)
 
@@ -247,7 +247,7 @@ class OutputControl:
 		self.timer = timer
 
 	def build_data(self) -> bytes:
-		timer_bytes = Message.convert_short_to_bytes(self.timer)
+		timer_bytes = self.timer.to_bytes(2, byteorder='little')
 		return bytes([self.output_number, self.output_control_code.value, timer_bytes[0], timer_bytes[1]])
 
 class OutputControls:
@@ -306,7 +306,7 @@ class ReaderLedControl:
 		self.permanent_off_color = permanent_off_color
 
 	def build_data(self) -> bytes:
-		temporary_timer_bytes = Message.convert_short_to_bytes(self.temporary_timer)
+		temporary_timer_bytes = self.temporary_timer.to_bytes(2, byteorder='little')
 		return bytes([self.reader_number, self.led_number,
 			self.temporary_mode.value,
 			self.temporary_on_time,
@@ -315,7 +315,7 @@ class ReaderLedControl:
 			self.temporary_off_color.value,
 			temporary_timer_bytes[0],
 			temporary_timer_bytes[1],
-			self.permanent_mode,
+			self.permanent_mode.value,
 			self.permanent_on_time,
 			self.permanent_off_time,
 			self.permanent_on_color.value,
@@ -329,9 +329,71 @@ class ReaderLedControls:
 
 	def build_data(self) -> bytes:
 		data = bytearray()
-		for control in controls:
+		for control in self.controls:
 			data.extend(control.build_data())
 		return bytes(data)
+
+class ToneCode(Enum):
+	NoTone = 0
+	Off = 1
+	DefaultTone =  2
+	TBD =  3
+
+class ReaderBuzzerControl:
+
+	def __init__(self,
+			reader_number: int,
+			tone_code: ToneCode,
+			on_time: int,
+			off_time: int,
+			count: int):
+		self.reader_number = reader_number
+		self.tone_code = tone_code
+		self.on_time = on_time
+		self.off_time = off_time
+		self.count = count
+
+	def build_data(self) -> bytes:
+		return bytes([
+			self.reader_number,
+			self.tone_code.value,
+			self.on_time,
+			self.off_time,
+			self.count
+		])
+
+class TextCommand(Enum):
+	PermanentTextNoWrap = 0x01
+	PermanentTextWithWrap = 0x02
+	TempTextNoWrap = 0x02
+	TempTextWithWrap = 0x04
+
+class ReaderTextOutput:
+
+	def __init__(self,
+			reader_number: int,
+			text_command: TextCommand,
+			temp_text_time: int,
+			row: int,
+			column: int,
+			text: str):
+		self.reader_number = reader_number
+		self.text_command = text_command
+		self.temp_text_time = temp_text_time
+		self.row = row
+		self.column = column
+		self.text = text
+
+	def build_data(self) -> bytes:
+		text_length = len(self.text)
+		return bytes([
+			self.reader_number,
+			self.text_command.value,
+			self.temp_text_time,
+			self.row,
+			self.column,
+			text_length,
+		]) + self.text.encode("ascii")
 
 class FormatCode(Enum):
 	NotSpecified = 0x0
@@ -353,7 +415,7 @@ class RawCardData:
 
 		reader_number = data[0]
 		format_code = FormatCode(data[1])
-		bit_count = Message.convert_bytes_to_short(data[2:4])
+		bit_count = int.from_bytes(data[2:4], byteorder='little')
 		data = data[4:]
 		return RawCardData(reader_number, format_code, bit_count, data)
 

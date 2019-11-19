@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from ._types import *
 from ._message import Message
 from ._device import Device
+import datetime
 
 class Command(Message):
 
@@ -11,7 +12,6 @@ class Command(Message):
 		self._code = None
 
 	@property
-	@abstractmethod
 	def command_code(self) -> int:
 		pass
 
@@ -60,7 +60,7 @@ class Command(Message):
 		else:
 			self.add_checksum(command_buffer)
 
-		custom_command_update(command_buffer)
+		self.custom_command_update(command_buffer)
 
 		return bytes(command_buffer)
 
@@ -69,13 +69,14 @@ class PollCommand(Command):
 	def __init__(self, address: int):
 		self.address = address
 
+	@property
 	def command_code(self) -> int:
 		return 0x60
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x15 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return bytes([])
 
 	def custom_command_update(self, command_buffer: bytearray):
@@ -86,13 +87,14 @@ class IdReportCommand(Command):
 	def __init__(self, address: int):
 		self.address = address
 
+	@property
 	def command_code(self) -> int:
 		return 0x61
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x17 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return bytes([ 0x00 ])
 
 	def custom_command_update(self, command_buffer: bytearray):
@@ -103,13 +105,14 @@ class DeviceCapabilitiesCommand(Command):
 	def __init__(self, address: int):
 		self.address = address
 
+	@property
 	def command_code(self) -> int:
 		return 0x62
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x17 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return bytes([ 0x00 ])
 
 	def custom_command_update(self, command_buffer: bytearray):
@@ -120,13 +123,14 @@ class LocalStatusReportCommand(Command):
 	def __init__(self, address: int):
 		self.address = address
 
+	@property
 	def command_code(self) -> int:
 		return 0x64
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x15 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return bytes([])
 
 	def custom_command_update(self, command_buffer: bytearray):
@@ -137,31 +141,32 @@ class InputStatusReportCommand(Command):
 	def __init__(self, address: int):
 		self.address = address
 
+	@property
 	def command_code(self) -> int:
 		return 0x65
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x15 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return bytes([ ])
 
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
-
 
 class OutputStatusReportCommand(Command):
 
 	def __init__(self, address: int):
 		self.address = address
 
+	@property
 	def command_code(self) -> int:
 		return 0x66
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x15 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return bytes([])
 
 	def custom_command_update(self, command_buffer: bytearray):
@@ -172,18 +177,18 @@ class ReaderStatusReportCommand(Command):
 	def __init__(self, address: int):
 		self.address = address
 
+	@property
 	def command_code(self) -> int:
 		return 0x67
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x15 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return bytes([])
 
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
-
 
 class OutputControlCommand(Command):
 
@@ -191,18 +196,18 @@ class OutputControlCommand(Command):
 		self.address = address
 		self.output_controls = output_controls
 
+	@property
 	def command_code(self) -> int:
 		return 0x68
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x17 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return self.output_controls.build_data()
 
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
-
 
 class ReaderLedControlCommand(Command):
 
@@ -210,14 +215,81 @@ class ReaderLedControlCommand(Command):
 		self.address = address
 		self.reader_led_controls = reader_led_controls
 
+	@property
 	def command_code(self) -> int:
 		return 0x69
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x02, 0x17 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return self.reader_led_controls.build_data()
+
+	def custom_command_update(self, command_buffer: bytearray):
+		pass
+
+class ReaderBuzzerControlCommand(Command):
+
+	def __init__(self, address: int, reader_buzzer_control: ReaderBuzzerControl):
+		self.address = address
+		self.reader_buzzer_control = reader_buzzer_control
+
+	@property
+	def command_code(self) -> int:
+		return 0x6A
+
+	def security_control_block(self) -> bytes:
+		return bytes([ 0x02, 0x17 ])
+
+	def data(self) -> bytes:
+		return self.reader_buzzer_control.build_data()
+
+	def custom_command_update(self, command_buffer: bytearray):
+		pass
+
+class ReaderTextOutputCommand(Command):
+
+	def __init__(self, address: int, reader_text_output: ReaderTextOutput):
+		self.address = address
+		self.reader_text_output = reader_text_output
+
+	@property
+	def command_code(self) -> int:
+		return 0x6B
+
+	def security_control_block(self) -> bytes:
+		return bytes([ 0x02, 0x17 ])
+
+	def data(self) -> bytes:
+		return self.reader_text_output.build_data()
+
+	def custom_command_update(self, command_buffer: bytearray):
+		pass
+
+class SetDateTimeCommand(Command):
+
+	def __init__(self, address: int, timestamp: datetime.datetime):
+		self.address = address
+		self.timestamp = timestamp
+
+	@property
+	def command_code(self) -> int:
+		return 0x6D
+
+	def security_control_block(self) -> bytes:
+		return bytes([ 0x02, 0x17 ])
+
+	def data(self) -> bytes:
+		year_bytes = self.timestamp.year.to_bytes(2, byteorder='little')
+		return bytes([
+			year_bytes[0],
+			year_bytes[1],
+			self.timestamp.month,
+			self.timestamp.day,
+			self.timestamp.hour,
+			self.timestamp.minute,
+			self.timestamp.second
+		])
 
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
@@ -228,18 +300,18 @@ class SecurityInitializationRequestCommand(Command):
 		self.address = address
 		self.server_random_number = server_random_number
 
+	@property
 	def command_code(self) -> int:
 		return 0x76
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x03, 0x11, 0x00 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return self.server_random_number
 
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
-
 
 class ServerCryptogramCommand(Command):
 
@@ -247,13 +319,14 @@ class ServerCryptogramCommand(Command):
 		self.address = address
 		self.server_cryptogram = server_cryptogram
 
+	@property
 	def command_code(self) -> int:
 		return 0x77
 
 	def security_control_block(self) -> bytes:
 		return bytes([ 0x03, 0x13, 0x00 ])
 
-	def data() -> bytes:
+	def data(self) -> bytes:
 		return self.server_cryptogram
 
 	def custom_command_update(self, command_buffer: bytearray):

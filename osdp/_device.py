@@ -9,7 +9,7 @@ class Device(object):
 	
 	def __init__(self, address: int, use_crc: bool, use_secure_channel: bool):
 		self._use_secure_channel = use_secure_channel
-		this.address = address
+		self.address = address
 		self.message_control = Control(0, use_crc, use_secure_channel)
 
 		self._commands = queue.Queue()

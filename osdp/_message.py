@@ -40,14 +40,8 @@ class Message(ABC):
 		self._address = value
 
 	@abstractmethod
-	def data() -> bytes:
+	def data(self) -> bytes:
 		pass
-
-	def convert_short_to_bytes(self, value: int) -> bytes:
-		return value.to_bytes(2, byteorder='little')
-
-	def convert_bytes_to_short(self, data) -> int:
-		return int.from_bytes(data, byteorder='little')
 
 	def calculate_crc(self, data: bytes) -> int:
 		crc = 0x1D0F
@@ -59,13 +53,13 @@ class Message(ABC):
 		return (0x100 - sum(data) & 0xFF)
 
 	def add_packet_length(self, packet: bytearray, additional_length: int = 0):
-		packet_length = self.convert_short_to_bytes(len(packet) + additional_length)
+		packet_length = (len(packet) + additional_length).to_bytes(2, byteorder='little')
 		packet[2] = packet_length[0]
 		packet[3] = packet_length[1]
 
 	def add_crc(self, packet: bytearray):
 		crc = self.calculate_crc(bytes(packet[:-2]))
-		crc_bytes = self.convert_short_to_bytes(crc)
+		crc_bytes = crc.to_bytes(2, byteorder='little')
 		packet[-2] = crc_bytes[0]
 		packet[-1] = crc_bytes[1]
 
@@ -79,10 +73,4 @@ class Message(ABC):
 			return device.encrypt_data(data)
 		else:
 			return data
-
-	def convert_int_to_bytes(self, value: int) -> bytes:
-		return value.to_bytes(2, byteorder='little')
-
-	def convert_bytes_to_int(self, data) -> int:
-		return int.from_bytes(data, byteorder='little')
 
