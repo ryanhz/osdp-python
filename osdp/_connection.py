@@ -45,7 +45,7 @@ class SerialPortOsdpConnection(OsdpConnection):
 
 	@property
 	def is_open(self) -> bool:
-		self.serial_port is not None and self.serial_port.is_open
+		return self.serial_port is not None and self.serial_port.is_open
 
 	def open(self):
 		self.serial_port = serial.Serial(port=self._port, baudrate=self._baud_rate, timeout=2.0)
