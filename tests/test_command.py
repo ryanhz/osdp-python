@@ -25,17 +25,17 @@ class CommandTestCase(unittest.TestCase):
 	def test_poll_command_checksum(self):
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
 		command = PollCommand(address=0x7F)
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F07000160C6')
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_id_report_command_checksum(self):
@@ -46,70 +46,70 @@ class CommandTestCase(unittest.TestCase):
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F0800006100C5')
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_device_capabilities_command_checksum(self):
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
 		command = DeviceCapabilitiesCommand(address=0x7F)
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F0800016200C3')
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_input_status_command_checksum(self):
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
 		command = InputStatusReportCommand(address=0x7F)
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F07000165C1')
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_output_status_command_checksum(self):
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
 		command = OutputStatusReportCommand(address=0x7F)
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F07000266BF')
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_reader_led_control_command_granted_checksum(self):
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
 		reader_led_controls = [ReaderLedControl(
@@ -131,13 +131,13 @@ class CommandTestCase(unittest.TestCase):
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F15000269000002020102000A0000000000009D')
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_reader_led_control_command_denied_checksum(self):
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
 		reader_led_controls = [ReaderLedControl(
@@ -159,19 +159,19 @@ class CommandTestCase(unittest.TestCase):
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F15000169000002020101000A0000000000009F')
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_reader_buzzer_control_command_checksum(self):
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
 		reader_buzzer_control = ReaderBuzzerControl(
@@ -185,13 +185,13 @@ class CommandTestCase(unittest.TestCase):
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F0C00026A0003020103AD')
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_reader_text_output_command_checksum(self):
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
 		reader_text_output = ReaderTextOutput(
@@ -206,22 +206,22 @@ class CommandTestCase(unittest.TestCase):
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F1100016B00010000000474657374EC')
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_set_date_time_command_checksum(self):
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 		timestamp = datetime.datetime(

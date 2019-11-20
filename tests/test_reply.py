@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath('..'))
 from osdp import *
 
 
-class CommandTestCase(unittest.TestCase):
+class ReplyTestCase(unittest.TestCase):
 
 	"""Test commands for OSDP Python Module."""
 
@@ -27,7 +27,7 @@ class CommandTestCase(unittest.TestCase):
 		bus_id = uuid4()
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
 		command = PollCommand(address=0x7F)
@@ -39,20 +39,20 @@ class CommandTestCase(unittest.TestCase):
 		message = reply.build_reply(address=0x7F, control=device.message_control).hex().upper()
 		self.assertEqual(message, data.hex().upper())
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_poll_reply_card_data_checksum(self):
 		bus_id = uuid4()
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
 		command = PollCommand(address=0x7F)
@@ -67,17 +67,17 @@ class CommandTestCase(unittest.TestCase):
 		message = reply.build_reply(address=0x7F, control=device.message_control).hex().upper()
 		self.assertEqual(message, data.hex().upper())
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 	def test_poll_reply_key_data_checksum(self):
 		bus_id = uuid4()
 		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 1)
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 2)
 
 		command = PollCommand(address=0x7F)
@@ -92,7 +92,7 @@ class CommandTestCase(unittest.TestCase):
 		message = reply.build_reply(address=0x7F, control=device.message_control).hex().upper()
 		self.assertEqual(message, data.hex().upper())
 
-		device.message_control.increment_sequence(device.message_control.sequence)
+		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
 

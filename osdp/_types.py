@@ -42,9 +42,8 @@ class Control:
 	def control_byte(self) -> int:
 		return (self.sequence & 0x03 | (0x04 if self.use_crc else 0) | (0x08 if self.has_security_control_block else 0)) & 0xFF
 
-	def increment_sequence(self, _sequence: int):
-		_sequence = _sequence%3 + 1
-		self.sequence = _sequence
+	def increment_sequence(self):
+		self.sequence = self.sequence%3 + 1
 
 class ErrorCode(Enum):
 	NoError = 0x0
@@ -106,7 +105,7 @@ class DeviceIdentification:
 
 	def __repr__(self):
 		return "     Vendor Code: {0}\n    Model Number: {1}\n         Version: {2}\n   Serial Number: {3}\nFirmware Version: {4}.{5}.{6}".format(
-			self.vendor_code.hex(), self.model_number, self.version, self.serial_number.to_bytes(2, byteorder='little').hex(), self.firmware_major, self.firmware_minor, self.firmware_build)
+			self.vendor_code.hex(), self.model_number, self.version, self.serial_number.to_bytes(4, byteorder='little').hex(), self.firmware_major, self.firmware_minor, self.firmware_build)
 
 class CapabilityFunction(Enum):
 	Unknown = 0

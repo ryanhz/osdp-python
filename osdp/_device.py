@@ -43,8 +43,8 @@ class Device(object):
 	def send_command(self, command):
 		self._commands.put(command)
 
-	def valid_reply_has_been_received(self, sequence: int):
-		self.message_control.increment_sequence(sequence)
+	def valid_reply_has_been_received(self):
+		self.message_control.increment_sequence()
 		self._last_valid_reply = datetime.datetime.now()
 
 	def initialize_secure_channel(self, reply):

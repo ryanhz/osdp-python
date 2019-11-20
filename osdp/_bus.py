@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 
 from ._connection import OsdpConnection
 from ._device import Device
+from ._message import Message
 from ._command import Command
 from ._reply import Reply
 
@@ -41,13 +42,14 @@ class Bus:
 		if found_device is not None:
 			found_device.send_command(command)
 
-	def add_device(self, address: int, use_crc: bool, use_secure_channel: bool):
+	def add_device(self, address: int, use_crc: bool, use_secure_channel: bool) -> Device:
 		found_device = self._configured_devices.get(address)
 		self._configured_devices_lock.acquire()
 		if found_device is not None:
 			self._configured_devices.pop(address)
 		self._configured_devices[address] = Device(address, use_crc, use_secure_channel)
 		self._configured_devices_lock.release()
+		return self._configured_devices[address]
 
 	def remove_device(self, address: int):
 		found_device = self._configured_devices.get(address)
@@ -55,6 +57,7 @@ class Bus:
 		if found_device is not None:
 			self._configured_devices.pop(address)
 		self._configured_devices_lock.release()
+		return found_device
 
 	def is_online(self, address: int) -> bool:
 		found_device = self._configured_devices.get(address)
@@ -113,7 +116,7 @@ class Bus:
 				return
 
 		if reply.type != ReplyType.Busy:
-			device.valid_reply_has_been_received(reply.sequence)
+			device.valid_reply_has_been_received()
 
 		extract_reply_data = reply.extract_reply_data
 		error_code = ErrorCode(extract_reply_data[0])
@@ -128,7 +131,7 @@ class Bus:
 		if self._on_reply_received is not None:
 			self._on_reply_received(reply)
 
-	def send_command_and_receive_reply(data: bytearray, command: Command, device: Device) -> Reply:
+	def send_command_and_receive_reply(self, data: bytearray, command: Command, device: Device) -> Reply:
 		command_data: bytes = None
 		try:
 			command_data = command.build_command(device)
