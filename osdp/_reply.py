@@ -111,7 +111,7 @@ class Reply(Message):
 		return self.secure_block_data[0]!=0
 
 	def match_issuing_command(self, command: Command) -> bool:
-		return command==self._issuingCommand
+		return command==self._issuing_command
 
 	def is_valid_mac(self, mac: bytes) -> bool:
 		return mac[:self.MAC_SIZE]==self.mac

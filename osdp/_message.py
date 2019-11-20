@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from ._device import Device
 
 class Message(ABC):
 	
@@ -67,7 +66,7 @@ class Message(ABC):
 		checksum = self.calculate_checksum(bytes(packet[:-1]))
 		packet[-1] = checksum & 0xFF
 
-	def encrypted_data(self, device: Device) -> bytes:
+	def encrypted_data(self, device) -> bytes:
 		data = self.data()
 		if len(data)>0:
 			return device.encrypt_data(data)

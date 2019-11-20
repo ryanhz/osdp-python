@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 
 from ._types import *
 from ._message import Message
-from ._device import Device
 import datetime
 
 class Command(Message):
@@ -23,7 +22,7 @@ class Command(Message):
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
 
-	def build_command(self, device: Device) -> bytes:
+	def build_command(self, device) -> bytes:
 		command_buffer = bytearray([
 			self.SOM,
 			self.address,

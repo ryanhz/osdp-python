@@ -2,6 +2,7 @@ import queue
 import datetime
 
 from ._types import *
+from ._command import *
 from ._secure_channel import SecureChannel
 
 

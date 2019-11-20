@@ -6,10 +6,14 @@ from threading import Thread
 
 from ._types import *
 from ._connection import OsdpConnection
-from ._command import Command
-from ._reply import Reply
+from ._command import *
+from ._reply import *
+from ._bus import Bus
+
 
 log = logging.getLogger('osdp')
+console_handler = logging.StreamHandler()
+log.addHandler(console_handler)
 
 class ControlPanel:
 
@@ -79,7 +83,7 @@ class ControlPanel:
 			raise TimeoutError()
 
 	def shutdown(self):
-		for bus in self._buses:
+		for bus in list(self._buses.values()):
 			bus.close()
 	
 	def add_device(self, connection_id: UUID, address: int, use_crc: bool, use_secure_channel: bool):

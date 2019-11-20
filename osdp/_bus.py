@@ -5,6 +5,7 @@ from queue import Queue
 from threading import Lock
 from uuid import UUID, uuid4
 
+from ._types import *
 from ._connection import OsdpConnection
 from ._device import Device
 from ._message import Message
@@ -31,7 +32,7 @@ class Bus:
 
 	@property
 	def idle_line_delay(self) -> timedelta:
-		return timedelta(milliseconds=(1000.0/self._connection.baud_rate * 16.0))
+		return timedelta(milliseconds=(1000.0/self._connection.baud_rate * 16.0) * 100)
 
 	def close(self):
 		self._is_shutting_down = True
@@ -41,6 +42,8 @@ class Bus:
 		found_device = self._configured_devices.get(command.address)
 		if found_device is not None:
 			found_device.send_command(command)
+		else:
+			log.warning("Device not found with address %s", command.address)
 
 	def add_device(self, address: int, use_crc: bool, use_secure_channel: bool) -> Device:
 		found_device = self._configured_devices.get(address)
@@ -118,10 +121,11 @@ class Bus:
 		if reply.type != ReplyType.Busy:
 			device.valid_reply_has_been_received()
 
-		extract_reply_data = reply.extract_reply_data
-		error_code = ErrorCode(extract_reply_data[0])
-		if reply.type == ReplyType.Nak and (error_code==ErrorCode.DoesNotSupportSecurityBlock or error_code==ErrorCode.DoesNotSupportSecurityBlock):
-			device.reset_security()
+		if reply.type == ReplyType.Nak:
+			extract_reply_data = reply.extract_reply_data
+			error_code = ErrorCode(extract_reply_data[0])
+			if error_code==ErrorCode.DoesNotSupportSecurityBlock or error_code==ErrorCode.DoesNotSupportSecurityBlock:
+				device.reset_security()
 
 		if reply.type==ReplyType.CrypticData:
 			device.initialize_secure_channel(reply)
