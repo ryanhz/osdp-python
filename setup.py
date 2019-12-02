@@ -1,15 +1,12 @@
 from distutils.core import setup
 
-with open('README.rst', 'r', 'utf-8') as f:
-    readme = f.read()
-
 setup(
 	name = 'osdp',
 	packages = ['osdp'],
 	version = '0.4',
 	license='apache-2.0',
 	description = 'A Python control panel implementation of the Open Supervised Device Protocol (OSDP)',
-	long_description = readme,
+	long_description = open('README.rst').read(),
 	author = 'Ryan Hu',
 	author_email = 'huzhiren@gmail.com',
 	url = 'https://github.com/ryanhz/osdp-python',
