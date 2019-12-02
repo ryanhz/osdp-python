@@ -3,14 +3,14 @@ from distutils.core import setup
 setup(
 	name = 'osdp',
 	packages = ['osdp'],
-	version = '0.4',
+	version = '0.5',
 	license='apache-2.0',
 	description = 'A Python control panel implementation of the Open Supervised Device Protocol (OSDP)',
 	long_description = open('README.rst').read(),
 	author = 'Ryan Hu',
 	author_email = 'huzhiren@gmail.com',
 	url = 'https://github.com/ryanhz/osdp-python',
-	download_url = 'https://github.com/ryanhz/osdp-python/archive/v0.4-alpha.tar.gz',
+	download_url = 'https://github.com/ryanhz/osdp-python/archive/v0.5-alpha.tar.gz',
 	keywords = ['OSDP', 'Open Supervised Device Protocol', 'Access Control'],
 	install_requires=[
 		'pycryptodome',

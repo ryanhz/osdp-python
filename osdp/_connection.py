@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod 
 import serial
+import fcntl
+import struct
 import socket
 import sys
 
