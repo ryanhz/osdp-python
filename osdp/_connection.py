@@ -49,6 +49,12 @@ class SerialPortOsdpConnection(OsdpConnection):
 
 	def open(self):
 		self.serial_port = serial.Serial(port=self._port, baudrate=self._baud_rate, timeout=2.0)
+		fd = self.serial_port.fileno()
+		# See struct serial_rs485 in linux kernel.
+		# SER_RS485_ENABLED = 1 and SER_RS485_RTS_ON_SEND = 1
+		# https://www.kernel.org/doc/Documentation/serial/serial-rs485.txt
+		serial_rs485 = struct.pack('IIIIIIII', 3, 0, 0, 0, 0, 0, 0, 0)
+		fcntl.ioctl(fd, 0x542F, serial_rs485)
 
 	def close(self):
 		if self.serial_port is not None:
