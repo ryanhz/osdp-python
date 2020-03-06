@@ -256,7 +256,7 @@ class OutputControls:
 
 	def build_data(self) -> bytes:
 		data = bytearray()
-		for control in controls:
+		for control in self.controls:
 			data.extend(control.build_data())
 		return bytes(data)
 
