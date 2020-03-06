@@ -23,22 +23,22 @@ class Reply(Message):
 		self._address = data[1] & self.ADDRESS_MASK
 		self._sequence = data[4] & 0x03
 
-		is_using_crc: bool = (data[4] & 0x04)!=0
-		reply_message_footer_size: int = 2 if is_using_crc else 1
+		is_using_crc = (data[4] & 0x04)!=0
+		reply_message_footer_size = 2 if is_using_crc else 1
 
-		is_secure_control_block_present: bool = (data[4] & 0x08)!=0
-		secure_block_size: int = (data[5] & 0xFF) if is_secure_control_block_present else 0
+		is_secure_control_block_present = (data[4] & 0x08)!=0
+		secure_block_size = (data[5] & 0xFF) if is_secure_control_block_present else 0
 		self._security_block_type = (data[6] & 0xFF) if is_secure_control_block_present else 0
 		self._secure_block_data = data[(self.REPLY_MESSAGE_HEADER_SIZE + 2):][:(secure_block_size-2)] if is_secure_control_block_present else b''
 
-		mac_size: int = self.MAC_SIZE if self.is_secure_message else 0
-		message_length: int = len(data) - (reply_message_footer_size + mac_size)
+		mac_size = self.MAC_SIZE if self.is_secure_message else 0
+		message_length = len(data) - (reply_message_footer_size + mac_size)
 
 		self._mac = data[message_length:][:mac_size]
 		self._type = ReplyType(data[self.REPLY_TYPE_INDEX + secure_block_size] & 0xFF)
 
-		data_start: int = self.REPLY_MESSAGE_HEADER_SIZE + secure_block_size + 1
-		data_end: int = - reply_message_footer_size - mac_size
+		data_start = self.REPLY_MESSAGE_HEADER_SIZE + secure_block_size + 1
+		data_end = - reply_message_footer_size - mac_size
 		self._extract_reply_data = data[data_start:data_end]
 
 		if self.security_block_type==SecurityBlockType.ReplyMessageWithDataSecurity.value:

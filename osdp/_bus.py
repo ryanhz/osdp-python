@@ -91,7 +91,7 @@ class Bus:
 
 				last_message_sent_time = datetime.now()
 
-				reply: Reply = None
+				reply = None
 				try:
 					reply = self.send_command_and_receive_reply(data, command, device)
 				except:
@@ -136,7 +136,7 @@ class Bus:
 			self._on_reply_received(reply)
 
 	def send_command_and_receive_reply(self, data: bytearray, command: Command, device: Device) -> Reply:
-		command_data: bytes = None
+		command_data = None
 		try:
 			command_data = command.build_command(device)
 		except:
