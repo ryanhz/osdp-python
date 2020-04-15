@@ -293,6 +293,25 @@ class SetDateTimeCommand(Command):
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
 
+class ManufacturerSpecificCommand(Command):
+
+	def __init__(self, address: int, manufacturer_data: bytes):
+		self.address = address
+		self.manufacturer_data = manufacturer_data
+
+	@property
+	def command_code(self) -> int:
+		return 0x80
+
+	def security_control_block(self) -> bytes:
+		return bytes([ 0x02, 0x17 ])
+
+	def data(self) -> bytes:
+		return self.manufacturer_data
+
+	def custom_command_update(self, command_buffer: bytearray):
+		pass
+
 class SecurityInitializationRequestCommand(Command):
 
 	def __init__(self, address: int, server_random_number: bytes):

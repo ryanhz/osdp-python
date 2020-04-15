@@ -236,6 +236,23 @@ class CommandTestCase(unittest.TestCase):
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F0E00036DE3070B0C090200A4')
 
+	def test_reader_mfg_command_checksum(self):
+		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 1)
+
+		manufacturer_data = bytes([0x0B, 0x0E, 0x0E, 0x0F])
+		command = ManufacturerSpecificCommand(address=0x7F, manufacturer_data = manufacturer_data)
+		content = command.build_command(device)
+		self.assertEqual(content.hex().upper(), '537F0B0001800B0E0E0F6C')
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 2)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 3)
+
 	def test_poll_command_crc(self):
 		device = Device(address=0x7F, use_crc=True, use_secure_channel=False)
 
@@ -454,6 +471,22 @@ class CommandTestCase(unittest.TestCase):
 		device.message_control.increment_sequence()
 		self.assertEqual(device.message_control.sequence, 3)
 
+	def test_reader_mfg_command_crc(self):
+		device = Device(address=0x7F, use_crc=True, use_secure_channel=False)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 1)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 2)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 3)
+
+		manufacturer_data = bytes([0x0B, 0x0E, 0x0E, 0x0F])
+		command = ManufacturerSpecificCommand(address=0x7F, manufacturer_data = manufacturer_data)
+		content = command.build_command(device)
+		self.assertEqual(content.hex().upper(), '537F0C0007800B0E0E0FEDCC')
 
 if __name__ == '__main__':
 	unittest.main()

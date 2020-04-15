@@ -18,7 +18,7 @@ from ._types import ReplyType, SecurityBlockType, Control, ErrorCode, Nak, Devic
 from ._connection import OsdpConnection, SerialPortOsdpConnection, TcpClientOsdpConnection, TcpServerOsdpConnection
 from ._device import Device
 from ._message import Message
-from ._command import Command, PollCommand, IdReportCommand, DeviceCapabilitiesCommand, LocalStatusReportCommand, InputStatusReportCommand, OutputStatusReportCommand, ReaderStatusReportCommand, OutputControlCommand, ReaderLedControlCommand, ReaderBuzzerControlCommand, ReaderTextOutputCommand, SetDateTimeCommand, SecurityInitializationRequestCommand, ServerCryptogramCommand
+from ._command import Command, PollCommand, IdReportCommand, DeviceCapabilitiesCommand, LocalStatusReportCommand, InputStatusReportCommand, OutputStatusReportCommand, ReaderStatusReportCommand, OutputControlCommand, ReaderLedControlCommand, ReaderBuzzerControlCommand, ReaderTextOutputCommand, SetDateTimeCommand, SecurityInitializationRequestCommand, ServerCryptogramCommand, ManufacturerSpecificCommand
 from ._reply import Reply, AckReply, UnknownReply
 from ._secure_channel import SecureChannel
 from ._bus import Bus
