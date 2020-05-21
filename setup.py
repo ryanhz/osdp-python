@@ -10,7 +10,7 @@ setup(
 	author = 'Ryan Hu',
 	author_email = 'huzhiren@gmail.com',
 	url = 'https://github.com/ryanhz/osdp-python',
-	download_url = 'https://github.com/ryanhz/osdp-python/archive/v1.0.tar.gz',
+	download_url = 'https://github.com/ryanhz/osdp-python/archive/v1.1.tar.gz',
 	keywords = ['OSDP', 'Open Supervised Device Protocol', 'Access Control'],
 	install_requires=[
 		'pycryptodome',
