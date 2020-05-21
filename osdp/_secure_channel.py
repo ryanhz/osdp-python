@@ -5,7 +5,10 @@ from Crypto.Cipher import AES
 
 class SecureChannel:
 
-	default_secure_channel_key = bytes([0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F])
+	default_secure_channel_key = bytes([
+		0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+		0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F
+	])
 
 	def __init__(self):
 		self._cmac = None
@@ -22,25 +25,43 @@ class SecureChannel:
 
 	def initialize(self, cuid: bytes, client_random_number: bytes, client_cryptogram: bytes):
 		self._enc = self.generate_key(
-			bytes([0x01, 0x82, self.server_random_number[0], self.server_random_number[1], self.server_random_number[2], self.server_random_number[3], self.server_random_number[4], self.server_random_number[5]]),
-			bytes([0x00]*8), self.default_secure_channel_key 
+			bytes([
+				0x01, 0x82,
+				self.server_random_number[0], self.server_random_number[1], self.server_random_number[2],
+				self.server_random_number[3], self.server_random_number[4], self.server_random_number[5]
+			]),
+			bytes([0x00] * 8),
+			self.default_secure_channel_key
 		)
 
-		if client_cryptogram!=self.generate_key(self.server_random_number, client_cryptogram, self._enc):
+		if client_cryptogram != self.generate_key(self.server_random_number, client_cryptogram, self._enc):
 			raise Exception("Invalid client cryptogram")
 
-
 		self._smac1 = self.generate_key(
-			bytes([0x01, 0x01, self.server_random_number[0], self.server_random_number[1], self.server_random_number[2], self.server_random_number[3], self.server_random_number[4], self.server_random_number[5]]),
-			bytes([0x00]*8), self.default_secure_channel_key 
+			bytes([
+				0x01, 0x01,
+				self.server_random_number[0], self.server_random_number[1], self.server_random_number[2],
+				self.server_random_number[3], self.server_random_number[4], self.server_random_number[5]
+			]),
+			bytes([0x00] * 8),
+			self.default_secure_channel_key
 		)
 		self._smac2 = self.generate_key(
-			bytes([0x01, 0x02, self.server_random_number[0], self.server_random_number[1], self.server_random_number[2], self.server_random_number[3], self.server_random_number[4], self.server_random_number[5]]),
-			bytes([0x00]*8), self.default_secure_channel_key 
+			bytes([
+				0x01, 0x02,
+				self.server_random_number[0], self.server_random_number[1],
+				self.server_random_number[2], self.server_random_number[3],
+				self.server_random_number[4], self.server_random_number[5]
+			]),
+			bytes([0x00] * 8),
+			self.default_secure_channel_key
 		)
-		self.server_cryptogram = self.generate_key(client_random_number, self._server_random_number, self._enc)
+		self.server_cryptogram = self.generate_key(
+			client_random_number,
+			self._server_random_number,
+			self._enc
+		)
 		self.is_initialized = True
-
 
 	def establish(self, rmac: bytes):
 		self._rmac = rmac
@@ -55,16 +76,16 @@ class SecureChannel:
 		key = self._smac1
 		iv = self._rmac if is_command else self._cmac
 
-		while current_location<len(message):
+		while current_location < len(message):
 			input_buffer = bytearray(message[current_location:(current_location + crypto_length)])
-			if len(input_buffer)<crypto_length:
-				input_buffer.extend(b'\x00' * (crypto_length-len(input_buffer)))
+			if len(input_buffer) < crypto_length:
+				input_buffer.extend(b'\x00' * (crypto_length - len(input_buffer)))
 
 			current_location += crypto_length
 			if current_location > len(message):
 				key = self._smac2
-				if len(message)%crypto_length!=0:
-					input_buffer[len(message)%crypto_length] = padding_start
+				if len(message) % crypto_length != 0:
+					input_buffer[len(message) % crypto_length] = padding_start
 
 			cipher = AES.new(key, AES.MODE_CBC, iv)
 			mac = cipher.encrypt(bytes(input_buffer))
@@ -80,13 +101,13 @@ class SecureChannel:
 		padding_start = 0x80
 
 		key = self._enc
-		iv = bytes([ (~b) & 0xFF for b in self._cmac ])
+		iv = bytes([(~b) & 0xFF for b in self._cmac])
 		cipher = AES.new(key, AES.MODE_CBC, iv)
 		padded_data = cipher.decrypt(data)
 		decrypted_data = bytearray(padded_data)
-		while len(decrypted_data)>0 and decrypted_data[-1]!=padding_start:
+		while len(decrypted_data) > 0 and decrypted_data[-1] != padding_start:
 			decrypted_data.pop()
-		if len(decrypted_data)>0 and decrypted_data[-1]==padding_start:
+		if len(decrypted_data) > 0 and decrypted_data[-1] == padding_start:
 			decrypted_data.pop()
 		return bytes(decrypted_data)
 
@@ -95,11 +116,11 @@ class SecureChannel:
 		padding_start = 0x80
 		padded_data = bytearray(data)
 		padded_data.append(padding_start)
-		while len(padded_data)%crypto_length!=0:
+		while len(padded_data) % crypto_length != 0:
 			padded_data.append(0x00)
 
 		key = self._enc
-		iv = bytes([ (~b) & 0xFF for b in self._rmac ])
+		iv = bytes([(~b) & 0xFF for b in self._rmac])
 		cipher = AES.new(key, AES.MODE_CBC, iv)
 		return cipher.encrypt(padded_data)
 

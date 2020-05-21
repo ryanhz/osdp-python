@@ -1,6 +1,7 @@
 from enum import Enum
 from threading import Event
 
+
 class ReplyType(Enum):
 	Ack = 0x40
 	Nak = 0x41
@@ -21,6 +22,7 @@ class ReplyType(Enum):
 	Busy = 0x79
 	ManufactureSpecific = 0x90
 
+
 class SecurityBlockType(Enum):
 	BeginNewSecureConnectionSequence = 0x11
 	SecureConnectionSequenceStep2 = 0x12
@@ -31,6 +33,7 @@ class SecurityBlockType(Enum):
 	CommandMessageWithDataSecurity = 0x17
 	ReplyMessageWithDataSecurity = 0x18
 
+
 class Control:
 
 	def __init__(self, sequence: int, use_crc: bool, has_security_control_block: bool):
@@ -40,10 +43,14 @@ class Control:
 
 	@property
 	def control_byte(self) -> int:
-		return (self.sequence & 0x03 | (0x04 if self.use_crc else 0) | (0x08 if self.has_security_control_block else 0)) & 0xFF
+		cb = self.sequence & 0x03
+		cb |= (0x04 if self.use_crc else 0)
+		cb |= (0x08 if self.has_security_control_block else 0)
+		return cb & 0xFF
 
 	def increment_sequence(self):
-		self.sequence = self.sequence%3 + 1
+		self.sequence = self.sequence % 3 + 1
+
 
 class ErrorCode(Enum):
 	NoError = 0x0
@@ -58,6 +65,7 @@ class ErrorCode(Enum):
 	UnableToProcessCommand = 0x9
 	GenericError = 0xFF
 
+
 class Nak:
 
 	def __init__(self, error_code: ErrorCode, extra_data: bytes):
@@ -67,7 +75,7 @@ class Nak:
 	@staticmethod
 	def parse_data(reply):
 		data = reply.extract_reply_data
-		if len(data)<1:
+		if len(data) < 1:
 			raise ValueError("Invalid size for the data")
 
 		error_code = ErrorCode(data[0])
@@ -77,9 +85,13 @@ class Nak:
 	def __repr__(self):
 		return "Error: {0}\n Data: {1}".format(self.error_code.name, self.extra_data.hex())
 
+
 class DeviceIdentification:
 
-	def __init__(self, vendor_code: bytes, model_number: int, version: int, serial_number: int, firmware_major: int, firmware_minor: int, firmware_build: int):
+	def __init__(
+		self, vendor_code: bytes, model_number: int, version: int, serial_number: int,
+		firmware_major: int, firmware_minor: int, firmware_build: int
+	):
 		self.vendor_code = vendor_code
 		self.model_number = model_number
 		self.version = version
@@ -91,7 +103,7 @@ class DeviceIdentification:
 	@staticmethod
 	def parse_data(reply):
 		data = reply.extract_reply_data
-		if len(data)!=12:
+		if len(data) != 12:
 			raise ValueError("Invalid size for the data")
 
 		vendor_code = data[0:3]
@@ -101,11 +113,33 @@ class DeviceIdentification:
 		firmware_major = data[9]
 		firmware_minor = data[10]
 		firmware_build = data[11]
-		return DeviceIdentification(vendor_code, model_number, version, serial_number, firmware_major, firmware_minor, firmware_build)
+		return DeviceIdentification(
+			vendor_code,
+			model_number,
+			version,
+			serial_number,
+			firmware_major,
+			firmware_minor,
+			firmware_build
+		)
 
 	def __repr__(self):
-		return "     Vendor Code: {0}\n    Model Number: {1}\n         Version: {2}\n   Serial Number: {3}\nFirmware Version: {4}.{5}.{6}".format(
-			self.vendor_code.hex(), self.model_number, self.version, self.serial_number.to_bytes(4, byteorder='little').hex(), self.firmware_major, self.firmware_minor, self.firmware_build)
+		return \
+			"     Vendor Code: {0}\n"\
+			"    Model Number: {1}\n"\
+			"         Version: {2}\n"\
+			"   Serial Number: {3}\n"\
+			"Firmware Version: {4}.{5}.{6}"\
+			.format(
+				self.vendor_code.hex(),
+				self.model_number,
+				self.version,
+				self.serial_number.to_bytes(4, byteorder='little').hex(),
+				self.firmware_major,
+				self.firmware_minor,
+				self.firmware_build
+			)
+
 
 class CapabilityFunction(Enum):
 	Unknown = 0
@@ -124,6 +158,7 @@ class CapabilityFunction(Enum):
 	Readers = 13
 	Biometrics = 14
 
+
 class DeviceCapability:
 
 	def __init__(self, function: CapabilityFunction, compliance: int, number_of: int):
@@ -133,16 +168,30 @@ class DeviceCapability:
 
 	@staticmethod
 	def parse_data(data: bytes):
-		function = CapabilityFunction(data[0]) if data[0]<=14 else CapabilityFunction.Unknown
+		function = CapabilityFunction(data[0]) if data[0] <= 14 else CapabilityFunction.Unknown
 		compliance = data[1]
 		number_of = data[2]
 		return DeviceCapability(function, compliance, number_of)
 
 	def __repr__(self):
-		if(self.function==CapabilityFunction.ReceiveBufferSize or self.function==CapabilityFunction.LargestCombinedMessageSize):
-			return "  Function: {0}\n      Size: {1}".format(self.function.name,  int.from_bytes(bytes([self.compliance, self.number_of]), byteorder='little'))
+		if self.function == CapabilityFunction.ReceiveBufferSize or \
+			self.function == CapabilityFunction.LargestCombinedMessageSize:
+			return \
+				"  Function: {0}\n"\
+				"      Size: {1}".format(
+					self.function.name,
+					int.from_bytes(bytes([self.compliance, self.number_of]), byteorder='little')
+				)
 		else:
-			return "  Function: {0}\nCompliance: {1}\n Number Of: {2}".format(self.function.name, self.compliance, self.number_of)
+			return \
+				"  Function: {0}\n"\
+				"Compliance: {1}\n"\
+				" Number Of: {2}".format(
+					self.function.name,
+					self.compliance,
+					self.number_of
+				)
+
 
 class DeviceCapabilities:
 
@@ -152,16 +201,17 @@ class DeviceCapabilities:
 	@staticmethod
 	def parse_data(reply):
 		data = reply.extract_reply_data
-		if len(data)%3!=0:
+		if len(data) % 3 != 0:
 			raise ValueError("Invalid size for the data")
 
 		capabilities = []
 		for i in range(0, len(data), 3):
-			capabilities.append(DeviceCapability.parse_data(data[i:i+3]))
+			capabilities.append(DeviceCapability.parse_data(data[i:(i + 3)]))
 		return DeviceCapabilities(capabilities)
 
 	def __repr__(self):
 		return '\n\n'.join([str(capability) for capability in self.capabilities])
+
 
 class InputStatus:
 
@@ -171,11 +221,12 @@ class InputStatus:
 	@staticmethod
 	def parse_data(reply):
 		data = reply.extract_reply_data
-		statuses = map(lambda b : b!=0, data)
+		statuses = map(lambda b: b != 0, data)
 		return InputStatus(statuses)
 
 	def __repr__(self):
 		return 'Input: [' + ', '.join([str(status) for status in self.statuses]) + ']'
+
 
 class OutputStatus:
 
@@ -185,11 +236,12 @@ class OutputStatus:
 	@staticmethod
 	def parse_data(reply):
 		data = reply.extract_reply_data
-		statuses = map(lambda b : b!=0, data)
+		statuses = map(lambda b: b != 0, data)
 		return OutputStatus(statuses)
 
 	def __repr__(self):
 		return 'Output: [' + ', '.join([str(status) for status in self.statuses]) + ']'
+
 
 class LocalStatus:
 
@@ -200,20 +252,22 @@ class LocalStatus:
 	@staticmethod
 	def parse_data(reply):
 		data = reply.extract_reply_data
-		if len(data)<2:
+		if len(data) < 2:
 			raise ValueError("Invalid size for the data")
 
-		tamper = data[0]!=0
-		power_failure = data[1]!=0
+		tamper = data[0] != 0
+		power_failure = data[1] != 0
 		return LocalStatus(tamper, power_failure)
 
 	def __repr__(self):
 		return "       Tamper: {0}\nCPower Failure: {1}".format(self.tamper, self.power_failure)
 
+
 class ReaderTamperStatus(Enum):
 	Normal = 0x00
 	NotConnected = 0x01
 	Tamper = 0x02
+
 
 class ReaderStatus:
 
@@ -223,11 +277,12 @@ class ReaderStatus:
 	@staticmethod
 	def parse_data(reply):
 		data = reply.extract_reply_data
-		statuses = map(lambda b : ReaderTamperStatus(b), data)
+		statuses = map(lambda b: ReaderTamperStatus(b), data)
 		return ReaderStatus(statuses)
 
 	def __repr__(self):
 		return 'Reader Status: [' + ', '.join([str(status) for status in self.statuses]) + ']'
+
 
 class OutputControlCode(Enum):
 	Nop = 0x00
@@ -237,6 +292,7 @@ class OutputControlCode(Enum):
 	PermanentStateOnAllowTimedOperation = 0x04
 	TemporaryStateOnResumePermanentState = 0x05
 	TemporaryStateOffResumePermanentState = 0x06
+
 
 class OutputControl:
 
@@ -249,6 +305,7 @@ class OutputControl:
 		timer_bytes = self.timer.to_bytes(2, byteorder='little')
 		return bytes([self.output_number, self.output_control_code.value, timer_bytes[0], timer_bytes[1]])
 
+
 class OutputControls:
 
 	def __init__(self, controls):
@@ -260,36 +317,42 @@ class OutputControls:
 			data.extend(control.build_data())
 		return bytes(data)
 
+
 class TemporaryReaderControlCode(Enum):
 	Nop = 0x00
 	CancelAnyTemporaryAndDisplayPermanent = 0x01
 	SetTemporaryAndStartTimer = 0x02
 
+
 class PermanentReaderControlCode(Enum):
 	Nop = 0x00
 	SetPermanentState = 0x02
 
+
 class LedColor(Enum):
 	Black = 0
 	Red = 1
-	Green =  2
+	Green = 2
 	Amber = 3
 	Blue = 4
 
+
 class ReaderLedControl:
 
-	def __init__(self, reader_number: int, led_number: int,
-			temporary_mode: TemporaryReaderControlCode,
-			temporary_on_time: int,
-			temporary_off_time: int,
-			temporary_on_color: LedColor,
-			temporary_off_color: LedColor,
-			temporary_timer: int,
-			permanent_mode: PermanentReaderControlCode,
-			permanent_on_time: int,
-			permanent_off_time: int,
-			permanent_on_color: LedColor,
-			permanent_off_color: LedColor):
+	def __init__(
+		self, reader_number: int, led_number: int,
+		temporary_mode: TemporaryReaderControlCode,
+		temporary_on_time: int,
+		temporary_off_time: int,
+		temporary_on_color: LedColor,
+		temporary_off_color: LedColor,
+		temporary_timer: int,
+		permanent_mode: PermanentReaderControlCode,
+		permanent_on_time: int,
+		permanent_off_time: int,
+		permanent_on_color: LedColor,
+		permanent_off_color: LedColor
+	):
 		self.reader_number = reader_number
 		self.led_number = led_number
 		self.temporary_mode = temporary_mode
@@ -306,7 +369,8 @@ class ReaderLedControl:
 
 	def build_data(self) -> bytes:
 		temporary_timer_bytes = self.temporary_timer.to_bytes(2, byteorder='little')
-		return bytes([self.reader_number, self.led_number,
+		return bytes([
+			self.reader_number, self.led_number,
 			self.temporary_mode.value,
 			self.temporary_on_time,
 			self.temporary_off_time,
@@ -321,6 +385,7 @@ class ReaderLedControl:
 			self.permanent_off_color.value
 		])
 
+
 class ReaderLedControls:
 
 	def __init__(self, controls):
@@ -332,20 +397,24 @@ class ReaderLedControls:
 			data.extend(control.build_data())
 		return bytes(data)
 
+
 class ToneCode(Enum):
 	NoTone = 0
 	Off = 1
-	DefaultTone =  2
-	TBD =  3
+	DefaultTone = 2
+	TBD = 3
+
 
 class ReaderBuzzerControl:
 
-	def __init__(self,
-			reader_number: int,
-			tone_code: ToneCode,
-			on_time: int,
-			off_time: int,
-			count: int):
+	def __init__(
+		self,
+		reader_number: int,
+		tone_code: ToneCode,
+		on_time: int,
+		off_time: int,
+		count: int
+	):
 		self.reader_number = reader_number
 		self.tone_code = tone_code
 		self.on_time = on_time
@@ -361,21 +430,25 @@ class ReaderBuzzerControl:
 			self.count
 		])
 
+
 class TextCommand(Enum):
 	PermanentTextNoWrap = 0x01
 	PermanentTextWithWrap = 0x02
 	TempTextNoWrap = 0x02
 	TempTextWithWrap = 0x04
 
+
 class ReaderTextOutput:
 
-	def __init__(self,
-			reader_number: int,
-			text_command: TextCommand,
-			temp_text_time: int,
-			row: int,
-			column: int,
-			text: str):
+	def __init__(
+		self,
+		reader_number: int,
+		text_command: TextCommand,
+		temp_text_time: int,
+		row: int,
+		column: int,
+		text: str
+	):
 		self.reader_number = reader_number
 		self.text_command = text_command
 		self.temp_text_time = temp_text_time
@@ -394,9 +467,11 @@ class ReaderTextOutput:
 			text_length,
 		]) + self.text.encode("ascii")
 
+
 class FormatCode(Enum):
 	NotSpecified = 0x0
 	Wiegand = 0x1
+
 
 class RawCardData:
 
@@ -409,7 +484,7 @@ class RawCardData:
 	@staticmethod
 	def parse_data(reply) -> Nak:
 		data = reply.extract_reply_data
-		if len(data)<4:
+		if len(data) < 4:
 			raise ValueError("Invalid size for the data")
 
 		reader_number = data[0]
@@ -419,7 +494,17 @@ class RawCardData:
 		return RawCardData(reader_number, format_code, bit_count, data)
 
 	def __repr__(self):
-		return "Reader Number: {0}\n  Format Code: {1}\n    Bit Count: {2}\n         Data: {3}".format(self.reader_number, self.format_code.name, self.bit_count, self.data.hex().upper())
+		return \
+			"Reader Number: {0}\n"\
+			"  Format Code: {1}\n"\
+			"    Bit Count: {2}\n"\
+			"         Data: {3}".format(
+				self.reader_number,
+				self.format_code.name,
+				self.bit_count,
+				self.data.hex().upper()
+			)
+
 
 class KeypadData:
 
@@ -431,7 +516,7 @@ class KeypadData:
 	@staticmethod
 	def parse_data(reply) -> Nak:
 		data = reply.extract_reply_data
-		if len(data)<2:
+		if len(data) < 2:
 			raise ValueError("Invalid size for the data")
 
 		reader_number = data[0]
@@ -440,7 +525,14 @@ class KeypadData:
 		return KeypadData(reader_number, bit_count, data)
 
 	def __repr__(self):
-		return "Reader Number: {0}\n    Bit Count: {1}\n         Data: {2}".format(self.reader_number, self.bit_count, self.data.hex().upper())
+		return \
+			"Reader Number: {0}\n"\
+			"    Bit Count: {1}\n"\
+			"         Data: {2}".format(
+				self.reader_number,
+				self.bit_count,
+				self.data.hex().upper()
+			)
 
 
 class DataEvent(Event):

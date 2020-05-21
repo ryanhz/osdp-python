@@ -1,19 +1,23 @@
 import logging
-from queue import Queue
-from datetime import datetime, timedelta
-from uuid import UUID, uuid4
+from uuid import UUID
 from threading import Thread
 
-from ._types import *
+from ._types import (
+	DeviceIdentification, DeviceCapabilities, LocalStatus, InputStatus, OutputStatus, ReaderStatus,
+	OutputControls, ReplyType, ReaderLedControls, Reply, DataEvent, Nak, RawCardData, KeypadData
+)
 from ._connection import OsdpConnection
-from ._command import *
-from ._reply import *
+from ._command import (
+	Command, IdReportCommand, DeviceCapabilitiesCommand, LocalStatusReportCommand, InputStatusReportCommand,
+	OutputStatusReportCommand, ReaderStatusReportCommand, OutputControlCommand, ReaderLedControlCommand
+)
 from ._bus import Bus
 
 
 log = logging.getLogger('osdp')
 console_handler = logging.StreamHandler()
 log.addHandler(console_handler)
+
 
 class ControlPanel:
 
@@ -25,7 +29,7 @@ class ControlPanel:
 	def start_connection(self, connection: OsdpConnection) -> UUID:
 		bus = Bus(connection, self.on_reply_received)
 		self._buses[bus.id] = bus
-		thread = Thread(target = bus.run_polling_loop)
+		thread = Thread(target=bus.run_polling_loop)
 		thread.start()
 		return bus.id
 
@@ -67,6 +71,7 @@ class ControlPanel:
 
 	def send_command(self, connection_id: UUID, command: Command) -> Reply:
 		event = DataEvent()
+
 		def reply_fetcher(reply: Reply):
 			if reply.match_issuing_command(command):
 				self._reply_handlers.remove(reply_fetcher)
@@ -85,7 +90,7 @@ class ControlPanel:
 	def shutdown(self):
 		for bus in list(self._buses.values()):
 			bus.close()
-	
+
 	def add_device(self, connection_id: UUID, address: int, use_crc: bool, use_secure_channel: bool):
 		bus = self._buses.get(connection_id)
 		if bus is not None:
@@ -98,32 +103,31 @@ class ControlPanel:
 
 	def on_reply_received(self, reply: Reply):
 		for reply_hander in self._reply_handlers:
-			reply_hander(reply)			
+			reply_hander(reply)
 
-		if reply.type==ReplyType.Nak:
+		if reply.type == ReplyType.Nak:
 			self.on_nak_reply_received(reply.address, Nak.parse_data(reply))
 
-		elif reply.type==ReplyType.LocalStatusReport:
+		elif reply.type == ReplyType.LocalStatusReport:
 			self.on_local_status_report_reply_received(reply.address, LocalStatus.parse_data(reply))
 
-		elif reply.type==ReplyType.InputStatusReport:
+		elif reply.type == ReplyType.InputStatusReport:
 			self.on_input_status_report_reply_received(reply.address, InputStatus.parse_data(reply))
 
-		elif reply.type==ReplyType.OutputStatusReport:
+		elif reply.type == ReplyType.OutputStatusReport:
 			self.on_output_status_report_reply_received(reply.address, OutputStatus.parse_data(reply))
 
-		elif reply.type==ReplyType.ReaderStatusReport:
+		elif reply.type == ReplyType.ReaderStatusReport:
 			self.on_reader_status_report_reply_received(reply.address, ReaderStatus.parse_data(reply))
 
-		elif reply.type==ReplyType.FormattedReaderData:
+		elif reply.type == ReplyType.FormattedReaderData:
 			self.on_formatted_reader_data_reply_received(reply.address, reply.extract_reply_data)
 
-		elif reply.type==ReplyType.RawReaderData:
+		elif reply.type == ReplyType.RawReaderData:
 			self.on_raw_card_data_reply_received(reply.address, RawCardData.parse_data(reply))
 
-		elif reply.type==ReplyType.KeypadData:
+		elif reply.type == ReplyType.KeypadData:
 			self.on_keypad_data_reply_received(reply.address, KeypadData.parse_data(reply))
-
 
 	def on_nak_reply_received(self, address: int, nak: Nak):
 		log.debug("%s < Nak received %s", address, nak)

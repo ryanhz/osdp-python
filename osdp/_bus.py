@@ -1,11 +1,10 @@
 import logging
 from datetime import datetime, timedelta
 import time
-from queue import Queue
 from threading import Lock
-from uuid import UUID, uuid4
+from uuid import uuid4
 
-from ._types import *
+from ._types import ReplyType, ErrorCode
 from ._connection import OsdpConnection
 from ._device import Device
 from ._message import Message
@@ -14,11 +13,11 @@ from ._reply import Reply
 
 log = logging.getLogger('osdp')
 
-'''
-A group of OSDP devices sharing communications
-'''
-class Bus:
 
+class Bus:
+	'''
+	A group of OSDP devices sharing communications
+	'''
 	DRIVER_BYTE = 0xFF
 
 	def __init__(self, connection: OsdpConnection, on_reply_received):
@@ -32,7 +31,7 @@ class Bus:
 
 	@property
 	def idle_line_delay(self) -> timedelta:
-		return timedelta(milliseconds=(1000.0/self._connection.baud_rate * 16.0) * 100)
+		return timedelta(milliseconds=(1000.0 / self._connection.baud_rate * 16.0) * 100)
 
 	def close(self):
 		self._is_shutting_down = True
@@ -124,12 +123,12 @@ class Bus:
 		if reply.type == ReplyType.Nak:
 			extract_reply_data = reply.extract_reply_data
 			error_code = ErrorCode(extract_reply_data[0])
-			if error_code==ErrorCode.DoesNotSupportSecurityBlock or error_code==ErrorCode.DoesNotSupportSecurityBlock:
+			if error_code == ErrorCode.DoesNotSupportSecurityBlock or error_code == ErrorCode.DoesNotSupportSecurityBlock:
 				device.reset_security()
 
-		if reply.type==ReplyType.CrypticData:
+		if reply.type == ReplyType.CrypticData:
 			device.initialize_secure_channel(reply)
-		elif reply.type==ReplyType.InitialRMac:
+		elif reply.type == ReplyType.InitialRMac:
 			device.validate_secure_channel_establishment(reply)
 
 		if self._on_reply_received is not None:
@@ -168,8 +167,8 @@ class Bus:
 
 	def wait_for_rest_of_message(self, buffer: bytearray, reply_length: int):
 		while len(buffer) < reply_length:
-			bytes_read = self._connection.read(reply_length-len(buffer))
-			if len(bytes_read)>0:
+			bytes_read = self._connection.read(reply_length - len(buffer))
+			if len(bytes_read) > 0:
 				buffer.extend(bytes_read)
 			else:
 				return False
@@ -178,7 +177,7 @@ class Bus:
 	def wait_for_message_length(self, buffer: bytearray) -> bool:
 		while len(buffer) < 4:
 			bytes_read = self._connection.read(4)
-			if len(bytes_read)>0:
+			if len(bytes_read) > 0:
 				buffer.extend(bytes_read)
 			else:
 				return False
@@ -187,13 +186,12 @@ class Bus:
 	def wait_for_start_of_message(self, buffer: bytearray) -> bool:
 		while True:
 			bytes_read = self._connection.read(1)
-			if len(bytes_read)==0:
+			if len(bytes_read) == 0:
 				return False
 
-			if bytes_read[0]!=Message.SOM:
+			if bytes_read[0] != Message.SOM:
 				continue
 
 			buffer.extend(bytes_read)
 			break
-		return True	
-		
+		return True

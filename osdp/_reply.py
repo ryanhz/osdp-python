@@ -1,10 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from uuid import UUID
 
-from ._types import *
+from ._types import SecurityBlockType, ReplyType, Control
 from ._message import Message
 from ._command import Command
 from ._device import Device
+
 
 class Reply(Message):
 
@@ -23,13 +24,16 @@ class Reply(Message):
 		self._address = data[1] & self.ADDRESS_MASK
 		self._sequence = data[4] & 0x03
 
-		is_using_crc = (data[4] & 0x04)!=0
+		is_using_crc = (data[4] & 0x04) != 0
 		reply_message_footer_size = 2 if is_using_crc else 1
 
-		is_secure_control_block_present = (data[4] & 0x08)!=0
+		is_secure_control_block_present = (data[4] & 0x08) != 0
 		secure_block_size = (data[5] & 0xFF) if is_secure_control_block_present else 0
 		self._security_block_type = (data[6] & 0xFF) if is_secure_control_block_present else 0
-		self._secure_block_data = data[(self.REPLY_MESSAGE_HEADER_SIZE + 2):][:(secure_block_size-2)] if is_secure_control_block_present else b''
+		if is_secure_control_block_present:
+			self._secure_block_data = data[(self.REPLY_MESSAGE_HEADER_SIZE + 2):][:(secure_block_size - 2)]
+		else:
+			self._secure_block_data = b''
 
 		mac_size = self.MAC_SIZE if self.is_secure_message else 0
 		message_length = len(data) - (reply_message_footer_size + mac_size)
@@ -41,13 +45,13 @@ class Reply(Message):
 		data_end = - reply_message_footer_size - mac_size
 		self._extract_reply_data = data[data_start:data_end]
 
-		if self.security_block_type==SecurityBlockType.ReplyMessageWithDataSecurity.value:
-			self._extract_reply_data = self.decrypt_data(device);
+		if self.security_block_type == SecurityBlockType.ReplyMessageWithDataSecurity.value:
+			self._extract_reply_data = self.decrypt_data(device)
 
 		if is_using_crc:
-			self._is_data_correct = self.calculate_crc(data[:-2])==int.from_bytes(data[-2:], byteorder='little')
+			self._is_data_correct = self.calculate_crc(data[:-2]) == int.from_bytes(data[-2:], byteorder='little')
 		else:
-			self._is_data_correct = self.calculate_checksum(data[:-1])==int.from_bytes(data[-1:], byteorder='little')
+			self._is_data_correct = self.calculate_checksum(data[:-1]) == int.from_bytes(data[-1:], byteorder='little')
 
 		self._message_for_mac_generation = data[:message_length]
 
@@ -108,13 +112,13 @@ class Reply(Message):
 		return reply
 
 	def secure_cryptogram_has_been_accepted(self) -> bool:
-		return self.secure_block_data[0]!=0
+		return self.secure_block_data[0] != 0
 
 	def match_issuing_command(self, command: Command) -> bool:
-		return command==self._issuing_command
+		return command == self._issuing_command
 
 	def is_valid_mac(self, mac: bytes) -> bool:
-		return mac[:self.MAC_SIZE]==self.mac
+		return mac[:self.MAC_SIZE] == self.mac
 
 	def build_reply(self, address: int, control: Control) -> bytes:
 		command_buffer = bytearray([
@@ -161,10 +165,10 @@ class AckReply(Reply):
 		return 0x40
 
 	def security_control_block(self) -> bytes:
-		return bytes([ 0x02, 0x16 ])
+		return bytes([0x02, 0x16])
 
 	def data(self) -> bytes:
-		return bytes([ ])
+		return bytes([])
 
 
 class UnknownReply(Reply):
@@ -184,4 +188,3 @@ class UnknownReply(Reply):
 
 	def data(self) -> bytes:
 		return self.extract_reply_data
-

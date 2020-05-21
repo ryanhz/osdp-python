@@ -1,9 +1,9 @@
-from abc import ABC, abstractmethod 
+from abc import ABC, abstractmethod
 import serial
 import fcntl
 import struct
 import socket
-import sys
+
 
 class OsdpConnection(ABC):
 
@@ -30,12 +30,12 @@ class OsdpConnection(ABC):
 		pass
 
 	@abstractmethod
-	def read(self, size: int=1) -> bytes:
+	def read(self, size: int = 1) -> bytes:
 		pass
 
 
 class SerialPortOsdpConnection(OsdpConnection):
-	
+
 	def __init__(self, port: str, baud_rate: int):
 		self._port = port
 		self._baud_rate = baud_rate
@@ -66,11 +66,12 @@ class SerialPortOsdpConnection(OsdpConnection):
 	def write(self, buf: bytes):
 		self.serial_port.write(buf)
 
-	def read(self, size: int=1) -> bytes:
+	def read(self, size: int = 1) -> bytes:
 		return self.serial_port.read(size)
 
+
 class TcpClientOsdpConnection(OsdpConnection):
-	
+
 	def __init__(self, server: str, port_number: int):
 		self._server = server
 		self._port_number = port_number
@@ -98,18 +99,19 @@ class TcpClientOsdpConnection(OsdpConnection):
 	def write(self, buf: bytes):
 		try:
 			self.sock.send(buf)
-		except socket.timeout as e:
-			self.is_connected = False		
+		except socket.timeout:
+			self.is_connected = False
 
-	def read(self, size: int=1) -> bytes:
+	def read(self, size: int = 1) -> bytes:
 		try:
 			return self.sock.recv(size)
-		except socket.timeout as e:
+		except socket.timeout:
 			self.is_connected = False
 		return b''
 
+
 class TcpServerOsdpConnection(OsdpConnection):
-	
+
 	def __init__(self, port_number: int):
 		self._port_number = port_number
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -137,12 +139,12 @@ class TcpServerOsdpConnection(OsdpConnection):
 	def write(self, buf: bytes):
 		try:
 			self.connection.sendall(buf)
-		except socket.timeout as e:
+		except socket.timeout:
 			self.close()
 
-	def read(self, size: int=1) -> bytes:
+	def read(self, size: int = 1) -> bytes:
 		try:
 			return self.connection.recv(size)
-		except socket.timeout as e:
+		except socket.timeout:
 			self.close()
 		return b''

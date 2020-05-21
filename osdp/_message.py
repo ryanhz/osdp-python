@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
+
 class Message(ABC):
-	
+
 	SOM = 0x53
 
 	crc_table = [
@@ -68,8 +69,7 @@ class Message(ABC):
 
 	def encrypted_data(self, device) -> bytes:
 		data = self.data()
-		if len(data)>0:
+		if len(data) > 0:
 			return device.encrypt_data(data)
 		else:
 			return data
-
