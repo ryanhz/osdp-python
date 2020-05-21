@@ -4,13 +4,14 @@ from threading import Thread
 
 from ._types import (
 	DeviceIdentification, DeviceCapabilities, LocalStatus, InputStatus, OutputStatus, ReaderStatus,
-	OutputControls, ReplyType, ReaderLedControls, Reply, DataEvent, Nak, RawCardData, KeypadData
+	OutputControls, ReplyType, ReaderLedControls, DataEvent, Nak, RawCardData, KeypadData
 )
 from ._connection import OsdpConnection
 from ._command import (
 	Command, IdReportCommand, DeviceCapabilitiesCommand, LocalStatusReportCommand, InputStatusReportCommand,
 	OutputStatusReportCommand, ReaderStatusReportCommand, OutputControlCommand, ReaderLedControlCommand
 )
+from ._reply import Reply
 from ._bus import Bus
 
 
