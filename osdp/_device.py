@@ -17,7 +17,7 @@ class Device(object):
 
 		self._commands = queue.Queue()
 		self._secure_channel = SecureChannel()
-		self._last_valid_reply = datetime.datetime.now()
+		self._last_valid_reply = datetime.datetime.utcfromtimestamp(0)
 
 	@property
 	def is_security_established(self) -> bool:
