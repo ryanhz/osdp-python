@@ -36,10 +36,11 @@ class OsdpConnection(ABC):
 
 class SerialPortOsdpConnection(OsdpConnection):
 
-	def __init__(self, port: str, baud_rate: int):
+	def __init__(self, port: str, baud_rate: int, raspberry_pi: bool=False):
 		self._port = port
 		self._baud_rate = baud_rate
 		self.serial_port = None
+		self.raspberry_pi = raspberry_pi
 
 	@property
 	def baud_rate(self) -> int:
@@ -51,12 +52,13 @@ class SerialPortOsdpConnection(OsdpConnection):
 
 	def open(self):
 		self.serial_port = serial.Serial(port=self._port, baudrate=self._baud_rate, timeout=2.0)
-		fd = self.serial_port.fileno()
-		# See struct serial_rs485 in linux kernel.
-		# SER_RS485_ENABLED = 1 and SER_RS485_RTS_ON_SEND = 1
-		# https://www.kernel.org/doc/Documentation/serial/serial-rs485.txt
-		serial_rs485 = struct.pack('IIIIIIII', 3, 0, 0, 0, 0, 0, 0, 0)
-		fcntl.ioctl(fd, 0x542F, serial_rs485)
+		if self.raspberry_pi:
+			fd = self.serial_port.fileno()
+			# See struct serial_rs485 in linux kernel.
+			# SER_RS485_ENABLED = 1 and SER_RS485_RTS_ON_SEND = 1
+			# https://www.kernel.org/doc/Documentation/serial/serial-rs485.txt
+			serial_rs485 = struct.pack('IIIIIIII', 3, 0, 0, 0, 0, 0, 0, 0)
+			fcntl.ioctl(fd, 0x542F, serial_rs485)
 
 	def close(self):
 		if self.serial_port is not None:
