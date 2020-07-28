@@ -108,10 +108,11 @@ class Reply(Message):
 
 	@staticmethod
 	def parse(data: bytes, connection_id: UUID, issuing_command: Command, device: Device):
-		reply = UnknownReply(data, connection_id, issuing_command, Device)
+		reply = UnknownReply(data, connection_id, issuing_command, device)
 		return reply
 
 	def secure_cryptogram_has_been_accepted(self) -> bool:
+		print("Secure block data: ", self.secure_block_data[0])
 		return self.secure_block_data[0] != 0
 
 	def match_issuing_command(self, command: Command) -> bool:
@@ -155,6 +156,7 @@ class Reply(Message):
 		return "Connection ID: {0} Address: {1} Type: {2}".format(self._connection_id, self.address, self.type)
 
 	def decrypt_data(self, device: Device) -> bytes:
+		print("Extract reply data: ", self.extract_reply_data.hex())
 		return device.decrypt_data(self.extract_reply_data)
 
 

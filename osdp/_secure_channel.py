@@ -34,7 +34,7 @@ class SecureChannel:
 			self.default_secure_channel_key
 		)
 
-		if client_cryptogram != self.generate_key(self.server_random_number, client_cryptogram, self._enc):
+		if client_cryptogram != self.generate_key(self.server_random_number, client_random_number, self._enc):
 			raise Exception("Invalid client cryptogram")
 
 		self._smac1 = self.generate_key(
@@ -58,7 +58,7 @@ class SecureChannel:
 		)
 		self.server_cryptogram = self.generate_key(
 			client_random_number,
-			self._server_random_number,
+			self.server_random_number,
 			self._enc
 		)
 		self.is_initialized = True

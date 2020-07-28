@@ -1,0 +1,8 @@
+37c37
+< 		if client_cryptogram != self.generate_key(self.server_random_number, client_random_number, self._enc):
+---
+> 		if client_cryptogram != self.generate_key(self.server_random_number, client_cryptogram, self._enc):
+61c61
+< 			self.server_random_number,
+---
+> 			self._server_random_number,

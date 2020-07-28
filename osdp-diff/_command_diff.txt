@@ -1,0 +1,8 @@
+41d40
+< 			print("Building secure message...")
+46,47c45,46
+< 			additional_length = 4 + (2 if device.message_control.use_crc else 1)
+< 			self.add_packet_length(command_buffer, additional_length)
+---
+> 			# additional_length = 4 + (device.message_control.use_crc ? 2 : 1)
+> 			# self.add_packet_length(command_buffer, additional_length)

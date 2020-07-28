@@ -129,7 +129,9 @@ class Bus:
 		if reply.type == ReplyType.CrypticData:
 			device.initialize_secure_channel(reply)
 		elif reply.type == ReplyType.InitialRMac:
-			device.validate_secure_channel_establishment(reply)
+			if device.validate_secure_channel_establishment(reply):
+				print("Secure session established.")
+				
 
 		if self._on_reply_received is not None:
 			self._on_reply_received(reply)

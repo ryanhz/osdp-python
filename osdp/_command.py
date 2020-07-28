@@ -38,12 +38,13 @@ class Command(Message):
 		command_buffer.append(self.command_code)
 
 		if device.is_security_established:
+			print("Building secure message...")
 			command_buffer.extend(self.encrypted_data(device))
 
 			# TODO: I don't think this needed
 			# include mac and crc/checksum in length before generating mac
-			# additional_length = 4 + (device.message_control.use_crc ? 2 : 1)
-			# self.add_packet_length(command_buffer, additional_length)
+			additional_length = 4 + (2 if device.message_control.use_crc else 1)
+			self.add_packet_length(command_buffer, additional_length)
 
 			command_buffer.extend(device.generate_mac(bytes(command_buffer), True)[0:4])
 		else:

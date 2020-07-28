@@ -1,0 +1,10 @@
+33c33
+< 		
+---
+> 
+38c38
+< 			return ServerCryptogramCommand(self.address, self._secure_channel.server_cryptogram)
+---
+> 			return ServerCryptogramCommand(self.address, self._secure_channel.serverCryptogram)
+59d58
+< 			print("Cryptogram not accepted")
