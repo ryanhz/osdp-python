@@ -9,7 +9,8 @@ from ._types import (
 from ._connection import OsdpConnection
 from ._command import (
 	Command, IdReportCommand, DeviceCapabilitiesCommand, LocalStatusReportCommand, InputStatusReportCommand,
-	OutputStatusReportCommand, ReaderStatusReportCommand, OutputControlCommand, ReaderLedControlCommand
+	OutputStatusReportCommand, ReaderStatusReportCommand, OutputControlCommand, ReaderLedControlCommand,
+	KeySetCommand
 )
 from ._reply import Reply
 from ._bus import Bus
@@ -62,6 +63,11 @@ class ControlPanel:
 	def reader_led_control(self, connection_id: UUID, address: int, reader_led_controls: ReaderLedControls) -> bool:
 		reply = self.send_command(connection_id, ReaderLedControlCommand(address, reader_led_controls))
 		return reply.type == ReplyType.Ack
+
+	def keyset(self, connection_id: UUID, address: int) -> bool:
+		reply = self.send_command(connection_id, KeySetCommand(address, bytes([])))
+		return reply.type == ReplyType.Ack
+
 
 	def is_online(self, connection_id: UUID, address: int) -> bool:
 		bus = self._buses.get(connection_id)

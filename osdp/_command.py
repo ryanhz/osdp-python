@@ -366,3 +366,31 @@ class ServerCryptogramCommand(Command):
 
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
+
+class KeySetCommand(Command):
+
+	def __init__(self, address: int, scbk: bytes):
+		self.address = address
+		self.scbk = scbk
+
+	@property
+	def command_code(self) -> int:
+		return 0x75
+
+	def security_control_block(self) -> bytes:
+		return bytes([0x02, 0x17])
+
+	def data(self) -> bytes:
+		return self.keyset_data()
+
+	def custom_command_update(self, command_buffer: bytearray):
+		pass
+
+	def keyset_data(self):
+		header = []
+		type = 0x01
+		len = 0x10
+		scbk = [0x41, 0x02, 0x31, 0x84, 0xF1, 0xA2, 0xDE, 0x7C, 0x32, 0x98, 0x01, 0xB8, 0x7B, 0x56, 0xB3, 0x60]
+		header.append(type)
+		header.append(len)
+		return bytes(header + scbk)
