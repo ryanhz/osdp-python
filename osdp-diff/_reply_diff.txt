@@ -1,8 +1,0 @@
-111c111
-< 		reply = UnknownReply(data, connection_id, issuing_command, device)
----
-> 		reply = UnknownReply(data, connection_id, issuing_command, Device)
-115d114
-< 		print("Secure block data: ", self.secure_block_data[0])
-159d157
-< 		print("Extract reply data: ", self.extract_reply_data.hex())

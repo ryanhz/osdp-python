@@ -68,7 +68,6 @@ class ControlPanel:
 		reply = self.send_command(connection_id, KeySetCommand(address, bytes([])))
 		return reply.type == ReplyType.Ack
 
-
 	def is_online(self, connection_id: UUID, address: int) -> bool:
 		bus = self._buses.get(connection_id)
 		if bus is None:

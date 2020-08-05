@@ -36,7 +36,7 @@ class OsdpConnection(ABC):
 
 class SerialPortOsdpConnection(OsdpConnection):
 
-	def __init__(self, port: str, baud_rate: int, raspberry_pi: bool=False):
+	def __init__(self, port: str, baud_rate: int, raspberry_pi: bool = False):
 		self._port = port
 		self._baud_rate = baud_rate
 		self.serial_port = None

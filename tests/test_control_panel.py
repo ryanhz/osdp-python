@@ -9,10 +9,10 @@ import sys
 import time
 import unittest
 
-sys.path.insert(0, os.path.abspath('..'))
-from osdp import *
+from context import *
 
 log = logging.getLogger('osdp')
+
 
 class ControlPanelTestCase(unittest.TestCase):
 

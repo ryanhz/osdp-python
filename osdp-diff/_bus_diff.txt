@@ -1,6 +1,0 @@
-132,134c132
-< 			if device.validate_secure_channel_establishment(reply):
-< 				print("Secure session established.")
-< 				
----
-> 			device.validate_secure_channel_establishment(reply)

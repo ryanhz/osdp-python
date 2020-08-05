@@ -1,13 +1,14 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
-from osdp import *
 import time
 import logging
 import random
 
+from context import OsdpConnection
+
 log = logging.getLogger('osdp')
+
 
 class PuppetOsdpConnection(OsdpConnection):
 	

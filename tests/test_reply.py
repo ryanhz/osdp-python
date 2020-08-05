@@ -9,8 +9,7 @@ import unittest
 import datetime
 from uuid import UUID, uuid4
 
-sys.path.insert(0, os.path.abspath('..'))
-from osdp import *
+from context import *
 
 
 class ReplyTestCase(unittest.TestCase):

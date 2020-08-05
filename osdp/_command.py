@@ -1,8 +1,11 @@
 from abc import abstractmethod
+import logging
 
 from ._types import OutputControls, ReaderLedControls, ReaderBuzzerControl, ReaderTextOutput
 from ._message import Message
 import datetime
+
+log = logging.getLogger('osdp')
 
 
 class Command(Message):
@@ -38,7 +41,7 @@ class Command(Message):
 		command_buffer.append(self.command_code)
 
 		if device.is_security_established:
-			print("Building secure message...")
+			log.debug("Building secure message...")
 			command_buffer.extend(self.encrypted_data(device))
 
 			# TODO: I don't think this needed
@@ -367,6 +370,7 @@ class ServerCryptogramCommand(Command):
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
 
+
 class KeySetCommand(Command):
 
 	def __init__(self, address: int, scbk: bytes):
@@ -389,8 +393,8 @@ class KeySetCommand(Command):
 	def keyset_data(self):
 		header = []
 		type = 0x01
-		len = 0x10
+		length = 0x10
 		scbk = [0x41, 0x02, 0x31, 0x84, 0xF1, 0xA2, 0xDE, 0x7C, 0x32, 0x98, 0x01, 0xB8, 0x7B, 0x56, 0xB3, 0x60]
 		header.append(type)
-		header.append(len)
+		header.append(length)
 		return bytes(header + scbk)

@@ -1,3 +1,4 @@
+import logging
 import queue
 import datetime
 
@@ -6,6 +7,8 @@ from ._command import (
 	PollCommand, SecurityInitializationRequestCommand, ServerCryptogramCommand
 )
 from ._secure_channel import SecureChannel
+
+log = logging.getLogger('osdp')
 
 
 class Device(object):
@@ -30,7 +33,7 @@ class Device(object):
 	def get_next_command_data(self):
 		if self.message_control.sequence == 0:
 			return PollCommand(self.address)
-		
+
 		if self._use_secure_channel and not self._secure_channel.is_initialized:
 			return SecurityInitializationRequestCommand(self.address, self._secure_channel.server_random_number)
 
@@ -56,7 +59,7 @@ class Device(object):
 
 	def validate_secure_channel_establishment(self, reply) -> bool:
 		if not reply.secure_cryptogram_has_been_accepted():
-			print("Cryptogram not accepted")
+			log.debug("Cryptogram not accepted")
 			return False
 
 		self._secure_channel.establish(reply.extract_reply_data)

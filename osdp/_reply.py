@@ -1,10 +1,13 @@
 from abc import abstractmethod
+import logging
 from uuid import UUID
 
 from ._types import SecurityBlockType, ReplyType, Control
 from ._message import Message
 from ._command import Command
 from ._device import Device
+
+log = logging.getLogger('osdp')
 
 
 class Reply(Message):
@@ -112,7 +115,7 @@ class Reply(Message):
 		return reply
 
 	def secure_cryptogram_has_been_accepted(self) -> bool:
-		print("Secure block data: ", self.secure_block_data[0])
+		log.debug("Secure block data: %s", self.secure_block_data[0])
 		return self.secure_block_data[0] != 0
 
 	def match_issuing_command(self, command: Command) -> bool:
@@ -156,7 +159,7 @@ class Reply(Message):
 		return "Connection ID: {0} Address: {1} Type: {2}".format(self._connection_id, self.address, self.type)
 
 	def decrypt_data(self, device: Device) -> bytes:
-		print("Extract reply data: ", self.extract_reply_data.hex())
+		log.debug("Extract reply data: %s", self.extract_reply_data.hex())
 		return device.decrypt_data(self.extract_reply_data)
 
 

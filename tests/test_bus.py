@@ -8,11 +8,11 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.abspath('..'))
-from osdp import *
-from .puppet_connection import PuppetOsdpConnection
+from puppet_connection import PuppetOsdpConnection
+from context import *
 
 log = logging.getLogger('osdp')
+
 
 class BusTestCase(unittest.TestCase):
 

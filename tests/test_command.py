@@ -8,8 +8,7 @@ import sys
 import unittest
 import datetime
 
-sys.path.insert(0, os.path.abspath('..'))
-from osdp import *
+from context import *
 
 
 class CommandTestCase(unittest.TestCase):
