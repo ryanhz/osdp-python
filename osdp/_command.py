@@ -38,12 +38,13 @@ class Command(Message):
 		command_buffer.append(self.command_code)
 
 		if device.is_security_established:
+			print("Building secure message...")
 			command_buffer.extend(self.encrypted_data(device))
 
 			# TODO: I don't think this needed
 			# include mac and crc/checksum in length before generating mac
-			# additional_length = 4 + (device.message_control.use_crc ? 2 : 1)
-			# self.add_packet_length(command_buffer, additional_length)
+			additional_length = 4 + (2 if device.message_control.use_crc else 1)
+			self.add_packet_length(command_buffer, additional_length)
 
 			command_buffer.extend(device.generate_mac(bytes(command_buffer), True)[0:4])
 		else:
@@ -365,3 +366,31 @@ class ServerCryptogramCommand(Command):
 
 	def custom_command_update(self, command_buffer: bytearray):
 		pass
+
+class KeySetCommand(Command):
+
+	def __init__(self, address: int, scbk: bytes):
+		self.address = address
+		self.scbk = scbk
+
+	@property
+	def command_code(self) -> int:
+		return 0x75
+
+	def security_control_block(self) -> bytes:
+		return bytes([0x02, 0x17])
+
+	def data(self) -> bytes:
+		return self.keyset_data()
+
+	def custom_command_update(self, command_buffer: bytearray):
+		pass
+
+	def keyset_data(self):
+		header = []
+		type = 0x01
+		len = 0x10
+		scbk = [0x41, 0x02, 0x31, 0x84, 0xF1, 0xA2, 0xDE, 0x7C, 0x32, 0x98, 0x01, 0xB8, 0x7B, 0x56, 0xB3, 0x60]
+		header.append(type)
+		header.append(len)
+		return bytes(header + scbk)
