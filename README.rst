@@ -17,11 +17,11 @@ Quick Start
 Installation
 ------------
 
-To install OSDP, use `pip <https://pip.pypa.io/en/stable/quickstart/>`_ or `pipenv <https://docs.pipenv.org/en/latest/>`_:
+To install OSDP, use `pip3 <https://pip.pypa.io/en/stable/quickstart/>`_ or `pipenv <https://docs.pipenv.org/en/latest/>`_:
 
 .. code-block:: console
 
-    $ pip install -U osdp
+    $ pip3 install -U osdp
 
 This module depends on
 

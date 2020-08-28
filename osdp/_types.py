@@ -260,7 +260,7 @@ class LocalStatus:
 		return LocalStatus(tamper, power_failure)
 
 	def __repr__(self):
-		return "       Tamper: {0}\nCPower Failure: {1}".format(self.tamper, self.power_failure)
+		return "        Tamper: {0}\nCPower Failure: {1}".format(self.tamper, self.power_failure)
 
 
 class ReaderTamperStatus(Enum):
@@ -482,7 +482,7 @@ class RawCardData:
 		self.data = data
 
 	@staticmethod
-	def parse_data(reply) -> Nak:
+	def parse_data(reply):
 		data = reply.extract_reply_data
 		if len(data) < 4:
 			raise ValueError("Invalid size for the data")
@@ -514,7 +514,7 @@ class KeypadData:
 		self.data = data
 
 	@staticmethod
-	def parse_data(reply) -> Nak:
+	def parse_data(reply):
 		data = reply.extract_reply_data
 		if len(data) < 2:
 			raise ValueError("Invalid size for the data")
