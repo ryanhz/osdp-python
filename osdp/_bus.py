@@ -132,6 +132,9 @@ class Bus:
 			if device.validate_secure_channel_establishment(reply):
 				log.debug("Secure session established.")
 
+		if device.reset_security_after_reply == True:
+			device.reset_security()
+
 		if self._on_reply_received is not None:
 			self._on_reply_received(reply)
 
