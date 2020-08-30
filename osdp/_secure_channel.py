@@ -10,7 +10,7 @@ class SecureChannel:
 		0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F
 	])
 
-	def __init__(self):
+	def __init__(self, master_key: bytes):
 		self._cmac = None
 		self._enc = None
 		self._rmac = None
@@ -21,6 +21,7 @@ class SecureChannel:
 		self.server_cryptogram = None
 		self.is_initialized = False
 		self.is_established = False
+		self.master_key = master_key
 		self.reset()
 
 	def initialize(self, cuid: bytes, client_random_number: bytes, client_cryptogram: bytes):

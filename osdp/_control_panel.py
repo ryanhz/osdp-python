@@ -23,10 +23,11 @@ log.addHandler(console_handler)
 
 class ControlPanel:
 
-	def __init__(self):
+	def __init__(self, master_key: bytes = None):
 		self._buses = {}
 		self._reply_handlers = []
 		self._reply_timeout = 5.0
+		self._master_key = master_key
 
 	def start_connection(self, connection: OsdpConnection) -> UUID:
 		bus = Bus(connection, self.on_reply_received)
@@ -100,7 +101,7 @@ class ControlPanel:
 	def add_device(self, connection_id: UUID, address: int, use_crc: bool, use_secure_channel: bool):
 		bus = self._buses.get(connection_id)
 		if bus is not None:
-			bus.add_device(address, use_crc, use_secure_channel)
+			bus.add_device(address, use_crc, use_secure_channel, self._master_key)
 
 	def remove_device(self, connection_id: UUID, address: int):
 		bus = self._buses.get(connection_id)

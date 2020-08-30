@@ -13,13 +13,13 @@ log = logging.getLogger('osdp')
 
 class Device(object):
 
-	def __init__(self, address: int, use_crc: bool, use_secure_channel: bool):
+	def __init__(self, address: int, use_crc: bool, use_secure_channel: bool, master_key: bytes):
 		self._use_secure_channel = use_secure_channel
 		self.address = address
 		self.message_control = Control(0, use_crc, use_secure_channel)
 
 		self._commands = queue.Queue()
-		self._secure_channel = SecureChannel()
+		self._secure_channel = SecureChannel(master_key)
 		self._last_valid_reply = datetime.datetime.utcfromtimestamp(0)
 
 	@property
