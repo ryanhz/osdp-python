@@ -2,9 +2,9 @@ import logging
 import queue
 import datetime
 
-from ._types import Control
+from ._types import Control, SecurityBlockType
 from ._command import (
-	PollCommand, SecurityInitializationRequestCommand, ServerCryptogramCommand
+	PollCommand, SecurityInitializationRequestCommand, ServerCryptogramCommand, KeySetCommand
 )
 from ._secure_channel import SecureChannel
 
@@ -13,14 +13,15 @@ log = logging.getLogger('osdp')
 
 class Device(object):
 
-	def __init__(self, address: int, use_crc: bool, use_secure_channel: bool):
+	def __init__(self, address: int, use_crc: bool, use_secure_channel: bool, master_key: bytes):
 		self._use_secure_channel = use_secure_channel
 		self.address = address
 		self.message_control = Control(0, use_crc, use_secure_channel)
 
 		self._commands = queue.Queue()
-		self._secure_channel = SecureChannel()
+		self._secure_channel = SecureChannel(master_key)
 		self._last_valid_reply = datetime.datetime.utcfromtimestamp(0)
+		self.reset_security_after_reply = False
 
 	@property
 	def is_security_established(self) -> bool:
@@ -40,6 +41,10 @@ class Device(object):
 		if self._use_secure_channel and not self._secure_channel.is_established:
 			return ServerCryptogramCommand(self.address, self._secure_channel.server_cryptogram)
 
+		if self._use_secure_channel and self._secure_channel.is_scbkd:
+			self.reset_security_after_reply = True
+			return KeySetCommand(self.address, self._secure_channel.calculate_scbk())
+
 		if self._commands.empty():
 			return PollCommand(self.address)
 		else:
@@ -54,6 +59,9 @@ class Device(object):
 		self._last_valid_reply = datetime.datetime.now()
 
 	def initialize_secure_channel(self, reply):
+		if reply.security_block_type == SecurityBlockType.SecureConnectionSequenceStep2.value:
+			self._secure_channel.select_scbk(reply.secure_block_data[0])
+
 		reply_data = reply.extract_reply_data
 		self._secure_channel.initialize(reply_data[:8], reply_data[8:16], reply_data[16:32])
 
@@ -69,6 +77,7 @@ class Device(object):
 		return self._secure_channel.generate_mac(message, is_command)
 
 	def reset_security(self):
+		self.reset_security_after_reply = False
 		self._secure_channel.reset()
 
 	def encrypt_data(self, data: bytes):

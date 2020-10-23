@@ -10,7 +10,7 @@ class SecureChannel:
 		0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F
 	])
 
-	def __init__(self):
+	def __init__(self, master_key: bytes):
 		self._cmac = None
 		self._enc = None
 		self._rmac = None
@@ -21,9 +21,18 @@ class SecureChannel:
 		self.server_cryptogram = None
 		self.is_initialized = False
 		self.is_established = False
+		self.master_key = master_key
+		self.is_scbkd = False
+		self.cuid = None
+		self.scbk = None
 		self.reset()
 
 	def initialize(self, cuid: bytes, client_random_number: bytes, client_cryptogram: bytes):
+		self.cuid = cuid
+		if self.is_scbkd == True:
+			self.scbk = self.default_secure_channel_key
+		else:
+			self.scbk = self.calculate_scbk()
 		self._enc = self.generate_key(
 			bytes([
 				0x01, 0x82,
@@ -31,7 +40,7 @@ class SecureChannel:
 				self.server_random_number[3], self.server_random_number[4], self.server_random_number[5]
 			]),
 			bytes([0x00] * 8),
-			self.default_secure_channel_key
+			self.scbk
 		)
 
 		if client_cryptogram != self.generate_key(self.server_random_number, client_random_number, self._enc):
@@ -44,7 +53,7 @@ class SecureChannel:
 				self.server_random_number[3], self.server_random_number[4], self.server_random_number[5]
 			]),
 			bytes([0x00] * 8),
-			self.default_secure_channel_key
+			self.scbk
 		)
 		self._smac2 = self.generate_key(
 			bytes([
@@ -54,7 +63,7 @@ class SecureChannel:
 				self.server_random_number[4], self.server_random_number[5]
 			]),
 			bytes([0x00] * 8),
-			self.default_secure_channel_key
+			self.scbk
 		)
 		self.server_cryptogram = self.generate_key(
 			client_random_number,
@@ -132,3 +141,19 @@ class SecureChannel:
 	def generate_key(self, first: bytes, second: bytes, key: bytes) -> bytes:
 		cipher = AES.new(key, AES.MODE_ECB)
 		return cipher.encrypt(first + second)
+
+	def select_scbk(self, byte):
+		if byte == 0x0:
+			self.is_scbkd = True
+		else:
+			self.is_scbkd = False
+
+	def calculate_scbk(self):
+		inv_cuid = bytes([(~b) & 0xFF for b in self.cuid])
+		scbk = self.generate_key(
+			self.cuid,
+			inv_cuid,
+			self.master_key
+		)
+
+		return scbk
