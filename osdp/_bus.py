@@ -44,7 +44,7 @@ class Bus:
 		else:
 			log.warning("Device not found with address %s", command.address)
 
-	def add_device(self, address: int, use_crc: bool, use_secure_channel: bool, master_key: bytes) -> Device:
+	def add_device(self, address: int, use_crc: bool, use_secure_channel: bool, master_key: bytes = None) -> Device:
 		found_device = self._configured_devices.get(address)
 		self._configured_devices_lock.acquire()
 		if found_device is not None:

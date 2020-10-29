@@ -13,7 +13,7 @@ log = logging.getLogger('osdp')
 
 class Device(object):
 
-	def __init__(self, address: int, use_crc: bool, use_secure_channel: bool, master_key: bytes):
+	def __init__(self, address: int, use_crc: bool, use_secure_channel: bool, master_key: bytes = None):
 		self._use_secure_channel = use_secure_channel
 		self.address = address
 		self.message_control = Control(0, use_crc, use_secure_channel)
