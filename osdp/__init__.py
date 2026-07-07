@@ -16,7 +16,7 @@ from ._types import (
 	DeviceCapability, DeviceCapabilities, InputStatus, OutputStatus, LocalStatus, ReaderTamperStatus,
 	ReaderStatus, OutputControlCode, OutputControl, OutputControls, TemporaryReaderControlCode,
 	PermanentReaderControlCode, LedColor, ReaderLedControl, ReaderLedControls, ToneCode, ReaderBuzzerControl,
-	TextCommand, ReaderTextOutput, FormatCode, RawCardData, KeypadData, DataEvent
+	TextCommand, ReaderTextOutput, FormatCode, RawCardData, KeypadData, FileTransferStatus, DataEvent
 )
 from ._connection import (
 	OsdpConnection, SerialPortOsdpConnection, TcpClientOsdpConnection, TcpServerOsdpConnection
@@ -28,10 +28,10 @@ from ._command import (
 	InputStatusReportCommand, OutputStatusReportCommand, ReaderStatusReportCommand,
 	OutputControlCommand, ReaderLedControlCommand, ReaderBuzzerControlCommand,
 	ReaderTextOutputCommand, SetDateTimeCommand, SecurityInitializationRequestCommand,
-	ServerCryptogramCommand, ManufacturerSpecificCommand
+	ServerCryptogramCommand, ManufacturerSpecificCommand, KeySetCommand, FileTransferCommand
 )
 from ._reply import Reply, AckReply, UnknownReply
-from ._secure_channel import SecureChannel
+from ._secure_channel import SecureChannel, calculate_scbk
 from ._bus import Bus
 from ._control_panel import ControlPanel
 

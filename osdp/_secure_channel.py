@@ -3,6 +3,12 @@ from Crypto import Random
 from Crypto.Cipher import AES
 
 
+def calculate_scbk(master_key: bytes, cuid: bytes) -> bytes:
+	inv_cuid = bytes([(~b) & 0xFF for b in cuid])
+	cipher = AES.new(master_key, AES.MODE_ECB)
+	return cipher.encrypt(cuid + inv_cuid)
+
+
 class SecureChannel:
 
 	default_secure_channel_key = bytes([
@@ -149,11 +155,4 @@ class SecureChannel:
 			self.is_scbkd = False
 
 	def calculate_scbk(self):
-		inv_cuid = bytes([(~b) & 0xFF for b in self.cuid])
-		scbk = self.generate_key(
-			self.cuid,
-			inv_cuid,
-			self.master_key
-		)
-
-		return scbk
+		return calculate_scbk(self.master_key, self.cuid)

@@ -371,6 +371,33 @@ class ServerCryptogramCommand(Command):
 		pass
 
 
+class FileTransferCommand(Command):
+
+	def __init__(self, address: int, ft_type: int, ft_size_total: int, ft_offset: int, ft_data: bytes):
+		self.address = address
+		self.ft_type = ft_type
+		self.ft_size_total = ft_size_total
+		self.ft_offset = ft_offset
+		self.ft_data = ft_data
+
+	@property
+	def command_code(self) -> int:
+		return 0x7C
+
+	def security_control_block(self) -> bytes:
+		return bytes([0x02, 0x17])
+
+	def data(self) -> bytes:
+		return bytes([self.ft_type]) + \
+			self.ft_size_total.to_bytes(4, byteorder='little') + \
+			self.ft_offset.to_bytes(4, byteorder='little') + \
+			len(self.ft_data).to_bytes(2, byteorder='little') + \
+			self.ft_data
+
+	def custom_command_update(self, command_buffer: bytearray):
+		pass
+
+
 class KeySetCommand(Command):
 
 	def __init__(self, address: int, scbk: bytes):

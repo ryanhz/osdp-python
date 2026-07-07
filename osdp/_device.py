@@ -31,6 +31,14 @@ class Device(object):
 	def is_online(self) -> bool:
 		return self._last_valid_reply + datetime.timedelta(seconds=5) >= datetime.datetime.now()
 
+	@property
+	def is_scbkd(self) -> bool:
+		return self._secure_channel.is_scbkd
+
+	@property
+	def cuid(self) -> bytes:
+		return self._secure_channel.cuid
+
 	def get_next_command_data(self):
 		if self.message_control.sequence == 0:
 			return PollCommand(self.address)

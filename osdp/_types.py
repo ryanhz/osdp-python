@@ -20,6 +20,7 @@ class ReplyType(Enum):
 	CrypticData = 0x76
 	InitialRMac = 0x78
 	Busy = 0x79
+	FileTransferStatus = 0x7A
 	ManufactureSpecific = 0x90
 
 
@@ -532,6 +533,44 @@ class KeypadData:
 				self.reader_number,
 				self.bit_count,
 				self.data.hex().upper()
+			)
+
+
+class FileTransferStatus:
+
+	# ft_action bit flags
+	POLL_RESPONSE_AVAILABLE = 0x01
+	LEAVING_SECURE_CHANNEL = 0x02
+	POLL_WITH_IDLE_MESSAGE = 0x04
+
+	def __init__(self, ft_action: int, ft_delay: int, ft_status: int, ft_update_msg_max: int):
+		self.ft_action = ft_action
+		self.ft_delay = ft_delay
+		self.ft_status = ft_status
+		self.ft_update_msg_max = ft_update_msg_max
+
+	@staticmethod
+	def parse_data(reply):
+		data = reply.extract_reply_data
+		if len(data) < 1:
+			raise ValueError("Invalid size for the data")
+
+		ft_action = data[0]
+		ft_delay = int.from_bytes(data[1:3], byteorder='little')
+		ft_status = int.from_bytes(data[3:5], byteorder='little', signed=True)
+		ft_update_msg_max = int.from_bytes(data[5:7], byteorder='little')
+		return FileTransferStatus(ft_action, ft_delay, ft_status, ft_update_msg_max)
+
+	def __repr__(self):
+		return \
+			"        Action: {0}\n"\
+			"         Delay: {1}\n"\
+			"        Status: {2}\n"\
+			"Update Msg Max: {3}".format(
+				self.ft_action,
+				self.ft_delay,
+				self.ft_status,
+				self.ft_update_msg_max
 			)
 
 

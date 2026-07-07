@@ -487,5 +487,136 @@ class CommandTestCase(unittest.TestCase):
 		content = command.build_command(device)
 		self.assertEqual(content.hex().upper(), '537F0C0007800B0E0E0FEDCC')
 
+	def test_file_transfer_command_checksum(self):
+		device = Device(address=0x7F, use_crc=False, use_secure_channel=False)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 1)
+
+		command = FileTransferCommand(
+			address = 0x7F,
+			ft_type = 130,
+			ft_size_total = 4096,
+			ft_offset = 0,
+			ft_data = bytes([0xDE, 0xAD, 0xBE, 0xEF])
+		)
+		content = command.build_command(device)
+		self.assertEqual(content.hex().upper(), '537F1600017C8200100000000000000400DEADBEEFCD')
+
+	def test_file_transfer_command_crc(self):
+		device = Device(address=0x7F, use_crc=True, use_secure_channel=False)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 1)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 2)
+
+		command = FileTransferCommand(
+			address = 0x7F,
+			ft_type = 130,
+			ft_size_total = 4096,
+			ft_offset = 1024,
+			ft_data = bytes([0xDE, 0xAD, 0xBE, 0xEF])
+		)
+		content = command.build_command(device)
+		self.assertEqual(content.hex().upper(), '537F1700067C8200100000000400000400DEADBEEFE749')
+
+	def test_file_transfer_command_idle_message_crc(self):
+		device = Device(address=0x7F, use_crc=True, use_secure_channel=False)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 1)
+
+		command = FileTransferCommand(
+			address = 0x7F,
+			ft_type = 130,
+			ft_size_total = 4096,
+			ft_offset = 4096,
+			ft_data = b''
+		)
+		self.assertEqual(command.data().hex().upper(), '8200100000001000000000')
+		content = command.build_command(device)
+		self.assertEqual(content.hex().upper(), '537F1300057C82001000000010000000007E75')
+
+	def test_file_transfer_command_secure_channel(self):
+		device = Device(address=0x7F, use_crc=True, use_secure_channel=True)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 1)
+
+		secure_channel = device._secure_channel
+		secure_channel._enc = bytes(range(0x10, 0x20))
+		secure_channel._smac1 = bytes(range(0x20, 0x30))
+		secure_channel._smac2 = bytes(range(0x30, 0x40))
+		secure_channel._rmac = bytes(range(0x40, 0x50))
+		secure_channel._cmac = bytes(range(0x50, 0x60))
+		secure_channel.is_initialized = True
+		secure_channel.is_established = True
+		self.assertTrue(device.is_security_established)
+
+		command = FileTransferCommand(
+			address = 0x7F,
+			ft_type = 130,
+			ft_size_total = 4096,
+			ft_offset = 0,
+			ft_data = bytes([0xDE, 0xAD, 0xBE, 0xEF])
+		)
+		content = command.build_command(device)
+		self.assertEqual(content.hex().upper(), '537F1E000D02177CBDA3DC9AEAF80D1FC7718530F5072B6B0EB18E9AA7AD')
+
+	def test_file_transfer_command_idle_message_secure_channel(self):
+		device = Device(address=0x7F, use_crc=True, use_secure_channel=True)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 1)
+
+		secure_channel = device._secure_channel
+		secure_channel._enc = bytes(range(0x10, 0x20))
+		secure_channel._smac1 = bytes(range(0x20, 0x30))
+		secure_channel._smac2 = bytes(range(0x30, 0x40))
+		secure_channel._rmac = bytes(range(0x40, 0x50))
+		secure_channel._cmac = bytes(range(0x50, 0x60))
+		secure_channel.is_initialized = True
+		secure_channel.is_established = True
+
+		command = FileTransferCommand(
+			address = 0x7F,
+			ft_type = 130,
+			ft_size_total = 4096,
+			ft_offset = 4096,
+			ft_data = b''
+		)
+		content = command.build_command(device)
+		self.assertEqual(content.hex().upper(), '537F1E000D02177C4938FCAF4F9601E9F10EF5712CE9D16D2F81CD5576DA')
+
+	def test_key_set_command_queued_mid_session(self):
+		master_key = bytes(range(16))
+		device = Device(address=0x7F, use_crc=True, use_secure_channel=True, master_key=master_key)
+
+		device.message_control.increment_sequence()
+		self.assertEqual(device.message_control.sequence, 1)
+
+		secure_channel = device._secure_channel
+		secure_channel._enc = bytes(range(0x10, 0x20))
+		secure_channel._smac1 = bytes(range(0x20, 0x30))
+		secure_channel._smac2 = bytes(range(0x30, 0x40))
+		secure_channel._rmac = bytes(range(0x40, 0x50))
+		secure_channel._cmac = bytes(range(0x50, 0x60))
+		secure_channel.is_initialized = True
+		secure_channel.is_established = True
+		self.assertFalse(device.is_scbkd)
+
+		new_scbk = calculate_scbk(master_key, bytes([0x11]) * 8)
+		device.send_command(KeySetCommand(0x7F, new_scbk))
+		command = device.get_next_command_data()
+		self.assertIsInstance(command, KeySetCommand)
+
+		content = command.build_command(device)
+		self.assertEqual(
+			content.hex().upper(),
+			'537F2E000D0217751E3D858FD8AAB46330A31A911A2BB5196C83BE9E2D53ACAB323436F6093B8713E8D01BD9ADCC'
+		)
+
 if __name__ == '__main__':
 	unittest.main()
